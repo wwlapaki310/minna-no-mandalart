@@ -1,0 +1,294 @@
+/* ========================================
+   マンダラート表示ページ専用スタイル
+   ======================================== */
+
+.mandalart-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    padding: var(--spacing-xl);
+    background: var(--color-white);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 4px 16px var(--color-shadow);
+}
+
+.mandalart-title {
+    font-size: 2.5rem;
+    font-family: var(--font-accent);
+    color: var(--color-red);
+    margin-bottom: var(--spacing-md);
+}
+
+.mandalart-meta {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    color: var(--color-text-light);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.meta-icon {
+    font-size: 1.2rem;
+}
+
+/* ========================================
+   9x9マンダラート表示
+   ======================================== */
+
+.mandalart-container {
+    margin-bottom: var(--spacing-2xl);
+    overflow-x: auto;
+    padding: var(--spacing-md);
+}
+
+.mandalart-full {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 2px;
+    background: var(--color-border);
+    border: 3px solid var(--color-red);
+    border-radius: var(--radius-md);
+    padding: 2px;
+    max-width: 900px;
+    margin: 0 auto;
+    box-shadow: 0 8px 24px var(--color-shadow);
+}
+
+.mandalart-cell {
+    aspect-ratio: 1;
+    background: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xs);
+    font-size: 0.85rem;
+    text-align: center;
+    word-break: break-word;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.mandalart-cell:hover {
+    background: var(--color-bg);
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+/* 中心のセル */
+.mandalart-cell.center {
+    background: linear-gradient(135deg, var(--color-gold), var(--color-red));
+    color: var(--color-white);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.mandalart-cell.center:hover {
+    transform: scale(1.1);
+}
+
+/* サブテーマのセル */
+.mandalart-cell.sub-theme {
+    background: linear-gradient(135deg, var(--color-pine-light), var(--color-pine));
+    color: var(--color-white);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* 各3x3ブロックの境界を強調 */
+.mandalart-cell:nth-child(3n) {
+    border-right: 2px solid var(--color-red);
+}
+
+.mandalart-cell:nth-child(n+19):nth-child(-n+27),
+.mandalart-cell:nth-child(n+46):nth-child(-n+54) {
+    border-bottom: 2px solid var(--color-red);
+}
+
+/* ========================================
+   アクションボタン
+   ======================================== */
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-2xl);
+    flex-wrap: wrap;
+}
+
+.actions .btn {
+    min-width: 150px;
+}
+
+/* ========================================
+   モバイル用セクション別表示
+   ======================================== */
+
+.mobile-sections {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mandalart-container {
+        display: none;
+    }
+
+    .mobile-sections {
+        display: block;
+    }
+
+    .mobile-section {
+        margin-bottom: var(--spacing-xl);
+        background: var(--color-white);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: 0 4px 16px var(--color-shadow);
+    }
+
+    .mobile-section-header {
+        background: linear-gradient(135deg, var(--color-pine-light), var(--color-pine));
+        color: var(--color-white);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-md);
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .mobile-center {
+        background: linear-gradient(135deg, var(--color-gold), var(--color-red));
+        color: var(--color-white);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        box-shadow: 0 4px 12px var(--color-shadow);
+    }
+
+    .mobile-details {
+        display: grid;
+        gap: var(--spacing-sm);
+    }
+
+    .mobile-detail-item {
+        background: var(--color-bg);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-sm);
+        border-left: 4px solid var(--color-pine);
+        font-size: 0.95rem;
+    }
+
+    .mobile-detail-number {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background: var(--color-pine);
+        color: var(--color-white);
+        border-radius: 50%;
+        text-align: center;
+        line-height: 24px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-right: var(--spacing-sm);
+    }
+
+    .mandalart-title {
+        font-size: 1.8rem;
+    }
+
+    .mandalart-meta {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        align-items: center;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+
+    .actions .btn {
+        width: 100%;
+    }
+}
+
+/* ========================================
+   印刷用スタイル
+   ======================================== */
+
+@media print {
+    .header,
+    .footer,
+    .actions,
+    .mobile-sections {
+        display: none !important;
+    }
+
+    .mandalart-container {
+        display: block !important;
+    }
+
+    .mandalart-full {
+        page-break-inside: avoid;
+    }
+
+    body {
+        background: white;
+    }
+}
+
+/* ========================================
+   アニメーション
+   ======================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mandalart-cell {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.mandalart-cell:nth-child(n) {
+    animation-delay: calc(0.02s * (var(--cell-index, 0)));
+}
+
+/* ========================================
+   ツールチップ（将来の拡張用）
+   ======================================== */
+
+.cell-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text);
+    color: var(--color-white);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+}
+
+.mandalart-cell:hover .cell-tooltip {
+    opacity: 1;
+}
