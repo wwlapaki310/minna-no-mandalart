@@ -41,22 +41,22 @@
                 <div class="step-indicator">
                     <div class="step active" data-step="1">
                         <span class="step-number">1</span>
-                        <span class="step-label">中心目標</span>
+                        <span class="step-label">大目標</span>
                     </div>
                     <div class="step" data-step="2">
                         <span class="step-number">2</span>
-                        <span class="step-label">8つのテーマ</span>
+                        <span class="step-label">8つの中目標</span>
                     </div>
                     <div class="step" data-step="3">
                         <span class="step-number">3</span>
-                        <span class="step-label">具体的行動</span>
+                        <span class="step-label">個別目標</span>
                     </div>
                 </div>
 
-                <!-- Step 1: 中心目標 -->
+                <!-- Step 1: 大目標 -->
                 <div class="step-content active" data-step="1">
                     <div class="card">
-                        <h3 class="card-title">💫 あなたのメインゴールを入力してください</h3>
+                        <h3 class="card-title">💫 あなたの大目標を入力してください</h3>
                         <div class="input-group">
                             <input 
                                 type="text" 
@@ -71,45 +71,45 @@
                     </div>
                 </div>
 
-                <!-- Step 2: 8つのテーマ -->
+                <!-- Step 2: 8つの中目標 -->
                 <div class="step-content" data-step="2">
                     <div class="card">
-                        <h3 class="card-title">🎯 メインゴールを達成するための8つのテーマ</h3>
+                        <h3 class="card-title">🎯 大目標を達成するための8つの中目標</h3>
                         <div class="center-preview">
-                            <span class="preview-label">中心目標:</span>
+                            <span class="preview-label">大目標:</span>
                             <span class="preview-text" id="center-preview"></span>
                         </div>
                         <div class="themes-grid">
                             <div class="theme-input" data-theme="0">
-                                <label>テーマ 1</label>
+                                <label>中目標 1</label>
                                 <input type="text" placeholder="例: 体力づくり" maxlength="30">
                             </div>
                             <div class="theme-input" data-theme="1">
-                                <label>テーマ 2</label>
+                                <label>中目標 2</label>
                                 <input type="text" placeholder="例: 技術向上" maxlength="30">
                             </div>
                             <div class="theme-input" data-theme="2">
-                                <label>テーマ 3</label>
+                                <label>中目標 3</label>
                                 <input type="text" placeholder="例: メンタル強化" maxlength="30">
                             </div>
                             <div class="theme-input" data-theme="3">
-                                <label>テーマ 4</label>
+                                <label>中目標 4</label>
                                 <input type="text" placeholder="例: 栄養管理" maxlength="30">
                             </div>
                             <div class="theme-input" data-theme="4">
-                                <label>テーマ 5</label>
+                                <label>中目標 5</label>
                                 <input type="text" placeholder="例: 戦術理解" maxlength="30">
                             </div>
                             <div class="theme-input" data-theme="5">
-                                <label>テーマ 6</label>
+                                <label>中目標 6</label>
                                 <input type="text" placeholder="例: チームワーク" maxlength="30">
                             </div>
                             <div class="theme-input" data-theme="6">
-                                <label>テーマ 7</label>
+                                <label>中目標 7</label>
                                 <input type="text" placeholder="例: 怪我予防" maxlength="30">
                             </div>
                             <div class="theme-input" data-theme="7">
-                                <label>テーマ 8</label>
+                                <label>中目標 8</label>
                                 <input type="text" placeholder="例: 自己分析" maxlength="30">
                             </div>
                         </div>
@@ -120,17 +120,17 @@
                     </div>
                 </div>
 
-                <!-- Step 3: 具体的行動 -->
+                <!-- Step 3: 個別目標 -->
                 <div class="step-content" data-step="3">
                     <div class="card">
-                        <h3 class="card-title">✨ 各テーマの具体的な行動を8つずつ入力</h3>
+                        <h3 class="card-title">✨ 各中目標の個別目標を8つずつ入力</h3>
                         
-                        <!-- テーマ選択タブ -->
+                        <!-- 中目標選択タブ -->
                         <div class="theme-tabs" id="theme-tabs">
                             <!-- JavaScriptで動的生成 -->
                         </div>
 
-                        <!-- 各テーマの詳細入力 -->
+                        <!-- 各中目標の個別目標入力 -->
                         <div class="details-container" id="details-container">
                             <!-- JavaScriptで動的生成 -->
                         </div>
@@ -147,6 +147,10 @@
             <div class="input-section hidden" id="grid-mode">
                 <div class="card">
                     <h3 class="card-title">📝 9x9グリッドで直接入力</h3>
+                    <p style="text-align: center; color: var(--color-text-light); margin-bottom: 1rem;">
+                        中央ブロック中心が<strong>大目標</strong>、その周囲8マスが<strong>中目標</strong>、<br>
+                        各周辺ブロック中心に中目標、その周囲8マスが<strong>個別目標</strong>
+                    </p>
                     <div class="mandalart-grid" id="mandalart-grid">
                         <!-- JavaScriptで動的生成 -->
                     </div>
@@ -156,7 +160,7 @@
 
             <!-- プレビュー -->
             <div class="preview-section" id="preview-section">
-                <h3 class="section-title">📋 プレビュー</h3>
+                <h3 class="section-title">📋 プレビュー（中央ブロック）</h3>
                 <div class="mandalart-preview" id="mandalart-preview">
                     <!-- JavaScriptで動的生成 -->
                 </div>
