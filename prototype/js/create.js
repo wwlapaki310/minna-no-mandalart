@@ -88,6 +88,12 @@ function initializeEventListeners() {
     document.getElementById('step3-complete').addEventListener('click', () => {
         completeMandalart();
     });
+
+    // グリッド完成ボタン
+    document.getElementById('grid-complete').addEventListener('click', () => {
+        saveGridData();
+        completeMandalart();
+    });
 }
 
 // ========================================
@@ -242,21 +248,155 @@ function initializeGridMode() {
     gridContainer.innerHTML = '';
 
     // 9x9のグリッドを作成
+    // グリッドの配置：
+    // [0-8]   [9-17]   [18-26]
+    // [27-35] [36-44]  [45-53]
+    // [54-62] [63-71]  [72-80]
+    
     for (let i = 0; i < 81; i++) {
         const cell = document.createElement('input');
         cell.type = 'text';
         cell.className = 'grid-cell';
+        cell.dataset.index = i;
         cell.placeholder = '';
         cell.maxLength = 30;
         
-        // 中央のセル(40番目)を強調
-        if (i === 40) {
-            cell.classList.add('center-cell');
-            cell.placeholder = 'メインゴール';
+        // 各3x3ブロックの中心セル（中目標と大目標）を判定
+        const blockRow = Math.floor(i / 27); // 0, 1, 2
+        const blockCol = Math.floor((i % 9) / 3); // 0, 1, 2
+        const innerRow = Math.floor((i % 27) / 9); // 0, 1, 2
+        const innerCol = (i % 9) % 3; // 0, 1, 2
+        
+        // 各ブロック内の中心セル（innerRow=1, innerCol=1）
+        if (innerRow === 1 && innerCol === 1) {
+            if (blockRow === 1 && blockCol === 1) {
+                // 中央ブロックの中心 = 大目標
+                cell.classList.add('center-cell');
+                cell.placeholder = '大目標';
+            } else {
+                // 周辺ブロックの中心 = 中目標
+                cell.classList.add('sub-theme-cell');
+                cell.placeholder = '中目標';
+            }
+        }
+        
+        // 既存データがあれば設定
+        const cellData = getGridCellData(i);
+        if (cellData) {
+            cell.value = cellData;
         }
 
         gridContainer.appendChild(cell);
     }
+}
+
+// ========================================
+// グリッドセルのデータ取得
+// ========================================
+
+function getGridCellData(index) {
+    // インデックスから位置を計算
+    const blockRow = Math.floor(index / 27);
+    const blockCol = Math.floor((index % 9) / 3);
+    const innerRow = Math.floor((index % 27) / 9);
+    const innerCol = (index % 9) % 3;
+    
+    // 中央ブロック
+    if (blockRow === 1 && blockCol === 1) {
+        if (innerRow === 1 && innerCol === 1) {
+            return mandalartData.center;
+        } else {
+            // 中目標の位置を計算
+            const themeIndex = getThemeIndexFromInner(innerRow, innerCol);
+            return mandalartData.themes[themeIndex]?.title || '';
+        }
+    } else {
+        // 周辺ブロック
+        const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
+        if (innerRow === 1 && innerCol === 1) {
+            return mandalartData.themes[themeIndex]?.title || '';
+        } else {
+            const detailIndex = getDetailIndexFromInner(innerRow, innerCol);
+            return mandalartData.themes[themeIndex]?.details[detailIndex] || '';
+        }
+    }
+}
+
+// ========================================
+// インデックス変換ヘルパー
+// ========================================
+
+function getThemeIndexFromInner(innerRow, innerCol) {
+    // 中央ブロック内の位置から中目標インデックスを取得
+    const positions = [
+        [0, 1, 2],
+        [3, -1, 4],
+        [5, 6, 7]
+    ];
+    return positions[innerRow][innerCol];
+}
+
+function getThemeIndexFromBlock(blockRow, blockCol) {
+    // ブロック位置から中目標インデックスを取得
+    if (blockRow === 1 && blockCol === 1) return -1; // 中央
+    
+    const blockPositions = [
+        [0, 1, 2],
+        [3, -1, 4],
+        [5, 6, 7]
+    ];
+    return blockPositions[blockRow][blockCol];
+}
+
+function getDetailIndexFromInner(innerRow, innerCol) {
+    // ブロック内の位置から個別目標インデックスを取得
+    const positions = [
+        [0, 1, 2],
+        [3, -1, 4],
+        [5, 6, 7]
+    ];
+    return positions[innerRow][innerCol];
+}
+
+// ========================================
+// グリッドデータの保存
+// ========================================
+
+function saveGridData() {
+    const cells = document.querySelectorAll('.grid-cell');
+    
+    cells.forEach((cell, index) => {
+        const value = cell.value.trim();
+        const blockRow = Math.floor(index / 27);
+        const blockCol = Math.floor((index % 9) / 3);
+        const innerRow = Math.floor((index % 27) / 9);
+        const innerCol = (index % 9) % 3;
+        
+        // 中央ブロック
+        if (blockRow === 1 && blockCol === 1) {
+            if (innerRow === 1 && innerCol === 1) {
+                mandalartData.center = value;
+            } else {
+                const themeIndex = getThemeIndexFromInner(innerRow, innerCol);
+                if (themeIndex >= 0) {
+                    mandalartData.themes[themeIndex].title = value;
+                }
+            }
+        } else {
+            // 周辺ブロック
+            const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
+            if (themeIndex >= 0) {
+                if (innerRow === 1 && innerCol === 1) {
+                    mandalartData.themes[themeIndex].title = value;
+                } else {
+                    const detailIndex = getDetailIndexFromInner(innerRow, innerCol);
+                    if (detailIndex >= 0) {
+                        mandalartData.themes[themeIndex].details[detailIndex] = value;
+                    }
+                }
+            }
+        }
+    });
 }
 
 // ========================================
@@ -271,18 +411,26 @@ function updatePreview() {
     const preview = document.createElement('div');
     preview.className = 'preview-grid';
 
-    // 中央
-    const centerDiv = document.createElement('div');
-    centerDiv.className = 'preview-cell preview-center';
-    centerDiv.textContent = mandalartData.center || '未入力';
-    preview.appendChild(centerDiv);
-
-    // 8つのテーマ
-    mandalartData.themes.forEach(theme => {
-        const themeDiv = document.createElement('div');
-        themeDiv.className = 'preview-cell preview-theme';
-        themeDiv.textContent = theme.title || '未入力';
-        preview.appendChild(themeDiv);
+    // 3x3のレイアウト
+    const layout = [
+        0, 1, 2,
+        3, -1, 4,
+        5, 6, 7
+    ];
+    
+    layout.forEach(themeIndex => {
+        const cell = document.createElement('div');
+        cell.className = 'preview-cell';
+        
+        if (themeIndex === -1) {
+            cell.classList.add('preview-center');
+            cell.textContent = mandalartData.center || '大目標';
+        } else {
+            cell.classList.add('preview-theme');
+            cell.textContent = mandalartData.themes[themeIndex]?.title || `中目標${themeIndex + 1}`;
+        }
+        
+        preview.appendChild(cell);
     });
 
     previewContainer.appendChild(preview);
@@ -301,17 +449,17 @@ function completeMandalart() {
     }, 0);
 
     if (!hasCenter) {
-        alert('メインゴールを入力してください');
+        alert('大目標を入力してください');
         return;
     }
 
     if (filledThemes < 8) {
-        alert('8つ全てのテーマを入力してください');
+        alert('8つ全ての中目標を入力してください');
         return;
     }
 
-    if (totalDetails < 32) { // 最低でも各テーマ4つずつ
-        alert('各テーマの具体的行動をもっと入力してください');
+    if (totalDetails < 32) {
+        alert('各中目標の個別目標をもっと入力してください（最低でも各テーマ4つずつ）');
         return;
     }
 
@@ -332,7 +480,6 @@ function completeMandalart() {
 // スタイルを追加（Step 3用）
 // ========================================
 
-// Step 3のスタイルをCSSに追加する必要があります
 const style = document.createElement('style');
 style.textContent = `
     .theme-tabs {
@@ -423,27 +570,56 @@ style.textContent = `
     }
 
     .preview-theme {
-        background: white;
-        color: var(--color-text);
-    }
-
-    .grid-cell {
-        padding: 0.5rem;
-        border: 1px solid var(--color-border);
-        font-size: 0.9rem;
-    }
-
-    .grid-cell.center-cell {
-        background: var(--color-gold);
-        font-weight: bold;
+        background: var(--color-pine-light);
+        color: white;
+        font-weight: 600;
     }
 
     #mandalart-grid {
         display: grid;
         grid-template-columns: repeat(9, 1fr);
         gap: 2px;
-        max-width: 800px;
+        max-width: 900px;
         margin: 0 auto 2rem;
+        background: var(--color-border);
+        padding: 2px;
+        border: 3px solid var(--color-red);
+        border-radius: 8px;
+    }
+
+    .grid-cell {
+        padding: 0.5rem;
+        border: none;
+        font-size: 0.75rem;
+        background: white;
+        text-align: center;
+    }
+
+    .grid-cell:focus {
+        outline: 2px solid var(--color-pine);
+        z-index: 10;
+    }
+
+    .grid-cell.center-cell {
+        background: linear-gradient(135deg, var(--color-gold), var(--color-red));
+        color: white;
+        font-weight: bold;
+    }
+
+    .grid-cell.sub-theme-cell {
+        background: var(--color-pine-light);
+        color: white;
+        font-weight: 600;
+    }
+
+    /* 3x3ブロックの境界を強調 */
+    .grid-cell:nth-child(3n) {
+        border-right: 2px solid var(--color-red);
+    }
+
+    .grid-cell:nth-child(n+19):nth-child(-n+27),
+    .grid-cell:nth-child(n+46):nth-child(-n+54) {
+        border-bottom: 2px solid var(--color-red);
     }
 
     @media (max-width: 768px) {
@@ -460,7 +636,11 @@ style.textContent = `
         }
 
         #mandalart-grid {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
+        }
+        
+        .grid-cell {
+            padding: 0.25rem;
         }
     }
 `;
