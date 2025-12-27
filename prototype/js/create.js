@@ -400,14 +400,14 @@ function saveGridData() {
 }
 
 // ========================================
-// プレビュー更新
+// プレビュー更新（編集可能版）
 // ========================================
 
 function updatePreview() {
     const previewContainer = document.getElementById('mandalart-preview');
     previewContainer.innerHTML = '';
 
-    // 簡易プレビュー: 中心とテーマのみ表示
+    // 編集可能なプレビュー: 中央ブロック（3x3）
     const preview = document.createElement('div');
     preview.className = 'preview-grid';
 
@@ -420,16 +420,58 @@ function updatePreview() {
     
     layout.forEach(themeIndex => {
         const cell = document.createElement('div');
-        cell.className = 'preview-cell';
+        cell.className = 'preview-cell editable';
+        
+        // インライン編集用のcontenteditable
+        const input = document.createElement('div');
+        input.contentEditable = true;
+        input.className = 'preview-input';
         
         if (themeIndex === -1) {
+            // 大目標
             cell.classList.add('preview-center');
-            cell.textContent = mandalartData.center || '大目標';
+            input.textContent = mandalartData.center || '';
+            input.setAttribute('placeholder', '大目標');
+            input.dataset.type = 'center';
+            
+            input.addEventListener('blur', (e) => {
+                const newValue = e.target.textContent.trim();
+                mandalartData.center = newValue;
+                // Step 1の入力欄も更新
+                const centerInput = document.getElementById('center-goal');
+                if (centerInput) {
+                    centerInput.value = newValue;
+                    document.getElementById('center-count').textContent = newValue.length;
+                }
+            });
         } else {
+            // 中目標
             cell.classList.add('preview-theme');
-            cell.textContent = mandalartData.themes[themeIndex]?.title || `中目標${themeIndex + 1}`;
+            input.textContent = mandalartData.themes[themeIndex]?.title || '';
+            input.setAttribute('placeholder', `中目標${themeIndex + 1}`);
+            input.dataset.type = 'theme';
+            input.dataset.index = themeIndex;
+            
+            input.addEventListener('blur', (e) => {
+                const newValue = e.target.textContent.trim();
+                mandalartData.themes[themeIndex].title = newValue;
+                // Step 2の入力欄も更新
+                const themeInputs = document.querySelectorAll('.theme-input input');
+                if (themeInputs[themeIndex]) {
+                    themeInputs[themeIndex].value = newValue;
+                }
+            });
         }
         
+        // Enterキーで次のセルに移動
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                input.blur();
+            }
+        });
+        
+        cell.appendChild(input);
         preview.appendChild(cell);
     });
 
@@ -477,7 +519,7 @@ function completeMandalart() {
 }
 
 // ========================================
-// スタイルを追加（Step 3用）
+// スタイルを追加
 // ========================================
 
 const style = document.createElement('style');
@@ -560,6 +602,33 @@ style.textContent = `
         font-size: 0.85rem;
         text-align: center;
         word-break: break-word;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .preview-cell.editable {
+        cursor: text;
+    }
+
+    .preview-cell.editable:hover {
+        border-color: var(--color-pine);
+        box-shadow: 0 0 0 3px rgba(49, 120, 115, 0.1);
+    }
+
+    .preview-input {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+        padding: 0.25rem;
+    }
+
+    .preview-input:empty:before {
+        content: attr(placeholder);
+        color: rgba(255, 255, 255, 0.5);
+        font-style: italic;
     }
 
     .preview-center {
@@ -569,10 +638,18 @@ style.textContent = `
         font-size: 1rem;
     }
 
+    .preview-center .preview-input:empty:before {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
     .preview-theme {
         background: var(--color-pine-light);
         color: white;
         font-weight: 600;
+    }
+
+    .preview-theme .preview-input:empty:before {
+        color: rgba(255, 255, 255, 0.5);
     }
 
     #mandalart-grid {
