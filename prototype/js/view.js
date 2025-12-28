@@ -57,6 +57,8 @@ function displayFullMandalart(data) {
             cell.classList.add('center');
         } else if (cellData.type === 'sub-theme') {
             cell.classList.add('sub-theme');
+        } else if (cellData.type === 'detail') {
+            cell.classList.add('detail');
         }
         
         cell.textContent = cellData.content;
@@ -229,10 +231,32 @@ async function downloadImage() {
     }
 
     try {
+        // グラデーション問題を回避するため、一時的に背景色を単色に変更
+        const centerCells = document.querySelectorAll('.mandalart-cell.center');
+        const themeCells = document.querySelectorAll('.mandalart-cell.sub-theme');
+        
+        // 元のスタイルを保存
+        const originalStyles = new Map();
+        centerCells.forEach(cell => {
+            originalStyles.set(cell, cell.style.cssText);
+            cell.style.background = '#DC143C'; // 紅白の赤
+            cell.style.color = 'white';
+        });
+        themeCells.forEach(cell => {
+            originalStyles.set(cell, cell.style.cssText);
+            cell.style.background = '#317873'; // 松葉色
+            cell.style.color = 'white';
+        });
+        
         const canvas = await html2canvas(container, {
             backgroundColor: '#FFF9F0',
             scale: 2,
             logging: false
+        });
+
+        // スタイルを元に戻す
+        originalStyles.forEach((style, cell) => {
+            cell.style.cssText = style;
         });
 
         // 画像をダウンロード
