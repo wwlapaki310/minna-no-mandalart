@@ -364,31 +364,38 @@ function openAccordion(themeIndex) {
     // タイトルを設定
     document.getElementById('accordion-theme-title').textContent = theme.title || `中目標${themeIndex + 1}`;
     
-    // 個別目標リストを作成
+    // 3x3グリッドを作成（中央は中目標タイトル）
     const container = document.getElementById('accordion-details-list');
     container.innerHTML = '';
     
-    for (let i = 0; i < 8; i++) {
-        const item = document.createElement('div');
-        item.className = 'mobile-detail-item';
+    // 9セルのレイアウト（中央は中目標タイトル）
+    const layout = [0, 1, 2, 3, -1, 4, 5, 6, 7];
+    
+    layout.forEach((detailIndex) => {
+        const cell = document.createElement('div');
+        cell.className = 'detail-grid-cell';
         
-        const label = document.createElement('label');
-        label.textContent = `個別目標 ${i + 1}`;
+        if (detailIndex === -1) {
+            // 中央セル：中目標タイトル
+            cell.classList.add('detail-center');
+            cell.textContent = theme.title || `中目標${themeIndex + 1}`;
+        } else {
+            // 個別目標セル
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 50;
+            input.value = theme.details[detailIndex];
+            input.placeholder = `目標${detailIndex + 1}`;
+            input.addEventListener('input', (e) => {
+                mandalartData.themes[currentThemeIndex].details[detailIndex] = e.target.value;
+                saveToStorage();
+            });
+            
+            cell.appendChild(input);
+        }
         
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.maxLength = 50;
-        input.value = theme.details[i];
-        input.placeholder = '個別目標';
-        input.addEventListener('input', (e) => {
-            mandalartData.themes[currentThemeIndex].details[i] = e.target.value;
-            saveToStorage();
-        });
-        
-        item.appendChild(label);
-        item.appendChild(input);
-        container.appendChild(item);
-    }
+        container.appendChild(cell);
+    });
     
     // アコーディオンを表示
     accordion.classList.remove('hidden');
