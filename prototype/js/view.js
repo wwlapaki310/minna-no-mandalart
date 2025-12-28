@@ -45,18 +45,12 @@ function displayFullMandalart(data) {
     const container = document.getElementById('mandalart-display');
     container.innerHTML = '';
 
-    // 9x9 = 81セルを生成
-    // レイアウト:
-    // [0-8]   [9-17]   [18-26]
-    // [27-35] [36-44]  [45-53]
-    // [54-62] [63-71]  [72-80]
-
-    const layout = buildFullLayout(data);
-    
-    layout.forEach((cellData, index) => {
+    // 9x9 = 81セルを正しく生成
+    for (let i = 0; i < 81; i++) {
+        const cellData = getCellData(data, i);
         const cell = document.createElement('div');
         cell.className = 'mandalart-cell';
-        cell.style.setProperty('--cell-index', index);
+        cell.style.setProperty('--cell-index', i);
         
         // セルのタイプに応じてクラスを追加
         if (cellData.type === 'center') {
@@ -67,95 +61,80 @@ function displayFullMandalart(data) {
         
         cell.textContent = cellData.content;
         container.appendChild(cell);
-    });
-}
-
-// ========================================
-// 9x9レイアウト構築
-// ========================================
-
-function buildFullLayout(data) {
-    const layout = [];
-    
-    // 3x3のブロック配置
-    // ブロック番号:
-    // [0] [1] [2]
-    // [3] [4] [5]
-    // [6] [7] [8]
-    
-    const blockOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-    
-    blockOrder.forEach(blockIndex => {
-        const blockCells = buildBlock(data, blockIndex);
-        layout.push(...blockCells);
-    });
-    
-    return layout;
-}
-
-// ========================================
-// 各3x3ブロックを構築
-// ========================================
-
-function buildBlock(data, blockIndex) {
-    const cells = [];
-    
-    if (blockIndex === 4) {
-        // 中央ブロック: メインゴールと8つのサブテーマ
-        const centerLayout = [
-            0, 1, 2,
-            3, -1, 4,  // -1 = center
-            5, 6, 7
-        ];
-        
-        centerLayout.forEach(themeIndex => {
-            if (themeIndex === -1) {
-                cells.push({
-                    type: 'center',
-                    content: data.center
-                });
-            } else {
-                cells.push({
-                    type: 'sub-theme',
-                    content: data.themes[themeIndex]?.title || ''
-                });
-            }
-        });
-    } else {
-        // 周辺ブロック: 各サブテーマの詳細
-        const themeIndex = blockIndex > 4 ? blockIndex - 1 : blockIndex;
-        const theme = data.themes[themeIndex];
-        
-        if (theme) {
-            // 中央にサブテーマタイトル
-            const detailLayout = [
-                0, 1, 2,
-                3, -1, 4,  // -1 = sub-theme title
-                5, 6, 7
-            ];
-            
-            detailLayout.forEach(detailIndex => {
-                if (detailIndex === -1) {
-                    cells.push({
-                        type: 'sub-theme',
-                        content: theme.title
-                    });
-                } else {
-                    cells.push({
-                        type: 'detail',
-                        content: theme.details[detailIndex] || ''
-                    });
-                }
-            });
-        } else {
-            // データがない場合は空セル
-            for (let i = 0; i < 9; i++) {
-                cells.push({ type: 'empty', content: '' });
-            }
-        }
     }
+}
+
+// ========================================
+// セルデータ取得（create.jsと同じロジック）
+// ========================================
+
+function getCellData(data, index) {
+    // 位置情報を計算
+    const blockRow = Math.floor(index / 27);
+    const blockCol = Math.floor((index % 9) / 3);
+    const innerRow = Math.floor((index % 27) / 9);
+    const innerCol = (index % 9) % 3;
     
-    return cells;
+    // セルの種類を判定
+    const isCenterBlock = (blockRow === 1 && blockCol === 1);
+    const isCenterCell = (innerRow === 1 && innerCol === 1);
+    
+    if (isCenterBlock && isCenterCell) {
+        // 大目標
+        return {
+            type: 'center',
+            content: data.center
+        };
+    } else if (isCenterBlock) {
+        // 中目標（中央ブロック）
+        const themeIndex = getThemeIndexFromInner(innerRow, innerCol);
+        return {
+            type: 'sub-theme',
+            content: data.themes[themeIndex]?.title || ''
+        };
+    } else if (isCenterCell) {
+        // 中目標（周辺ブロックの中心）
+        const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
+        return {
+            type: 'sub-theme',
+            content: data.themes[themeIndex]?.title || ''
+        };
+    } else {
+        // 個別目標
+        const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
+        const detailIndex = getDetailIndexFromInner(innerRow, innerCol);
+        return {
+            type: 'detail',
+            content: data.themes[themeIndex]?.details[detailIndex] || ''
+        };
+    }
+}
+
+function getThemeIndexFromInner(innerRow, innerCol) {
+    const positions = [
+        [0, 1, 2],
+        [3, -1, 4],
+        [5, 6, 7]
+    ];
+    return positions[innerRow][innerCol];
+}
+
+function getThemeIndexFromBlock(blockRow, blockCol) {
+    const positions = [
+        [0, 1, 2],
+        [3, -1, 4],
+        [5, 6, 7]
+    ];
+    return positions[blockRow][blockCol];
+}
+
+function getDetailIndexFromInner(innerRow, innerCol) {
+    const positions = [
+        [0, 1, 2],
+        [3, -1, 4],
+        [5, 6, 7]
+    ];
+    return positions[innerRow][innerCol];
 }
 
 // ========================================
