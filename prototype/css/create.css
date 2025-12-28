@@ -190,6 +190,7 @@
     justify-content: center;
     border-radius: var(--radius-md);
     overflow: hidden;
+    position: relative;
 }
 
 .mobile-cell input {
@@ -200,6 +201,13 @@
     font-size: 0.9rem;
     padding: 0.5rem;
     font-weight: 600;
+    position: relative;
+    z-index: 1;
+    pointer-events: auto;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: transparent;
 }
 
 .mobile-cell input:focus {
@@ -295,6 +303,11 @@
     border: 2px solid var(--color-border);
     border-radius: var(--radius-md);
     font-size: 1rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    position: relative;
+    z-index: 1;
 }
 
 .mobile-detail-item input:focus {
