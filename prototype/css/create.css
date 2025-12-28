@@ -91,11 +91,11 @@
     background: rgba(49, 120, 115, 0.05);
 }
 
-.mandalart-cell:empty:before {
+/* プレースホルダー表示（大目標のみ） */
+.mandalart-cell.cell-main:empty:before {
     content: attr(placeholder);
-    color: var(--color-text-light);
-    font-size: 0.75rem;
-    opacity: 0.5;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
 }
 
 /* セルの種類 */
@@ -106,19 +106,11 @@
     font-size: 1rem;
 }
 
-.mandalart-cell.cell-main:empty:before {
-    color: rgba(255, 255, 255, 0.7);
-}
-
 .mandalart-cell.cell-theme {
     background: var(--color-pine-light);
     color: white;
     font-weight: 600;
     font-size: 0.9rem;
-}
-
-.mandalart-cell.cell-theme:empty:before {
-    color: rgba(255, 255, 255, 0.6);
 }
 
 .mandalart-cell.cell-theme:hover {
@@ -216,10 +208,6 @@
 
 .mobile-cell-theme input {
     color: white;
-}
-
-.mobile-cell-theme input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
 }
 
 /* 進捗表示 */
