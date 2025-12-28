@@ -14,6 +14,7 @@ const mandalartData = {
 };
 
 let currentThemeIndex = 0;
+const ZERO_WIDTH_SPACE = '\u200B'; // カーソル位置制御用の不可視文字
 
 // ========================================
 // 初期化
@@ -123,7 +124,8 @@ function createDesktopCell(index) {
         });
         
         cell.addEventListener('blur', () => {
-            mandalartData.center = cell.textContent.trim();
+            mandalartData.center = cleanText(cell.textContent);
+            cell.textContent = mandalartData.center;
             saveToStorage();
             updateThemeCells();
             updatePlaceholderClass(cell);
@@ -152,7 +154,8 @@ function createDesktopCell(index) {
         });
         
         cell.addEventListener('blur', () => {
-            mandalartData.themes[themeIndex].title = cell.textContent.trim();
+            mandalartData.themes[themeIndex].title = cleanText(cell.textContent);
+            cell.textContent = mandalartData.themes[themeIndex].title;
             saveToStorage();
             updateThemeCells();
             updatePlaceholderClass(cell);
@@ -181,7 +184,8 @@ function createDesktopCell(index) {
         });
         
         cell.addEventListener('blur', () => {
-            mandalartData.themes[themeIndex].title = cell.textContent.trim();
+            mandalartData.themes[themeIndex].title = cleanText(cell.textContent);
+            cell.textContent = mandalartData.themes[themeIndex].title;
             saveToStorage();
             updateThemeCells();
             updatePlaceholderClass(cell);
@@ -212,7 +216,8 @@ function createDesktopCell(index) {
         });
         
         cell.addEventListener('blur', () => {
-            mandalartData.themes[themeIndex].details[detailIndex] = cell.textContent.trim();
+            mandalartData.themes[themeIndex].details[detailIndex] = cleanText(cell.textContent);
+            cell.textContent = mandalartData.themes[themeIndex].details[detailIndex];
             saveToStorage();
             updatePlaceholderClass(cell);
         });
@@ -230,7 +235,8 @@ function createDesktopCell(index) {
 }
 
 function handleCellFocus(cell) {
-    const text = cell.textContent.trim();
+    const text = cleanText(cell.textContent);
+    
     if (text) {
         // テキストがある場合は全選択
         setTimeout(() => {
@@ -241,13 +247,30 @@ function handleCellFocus(cell) {
             selection.addRange(range);
         }, 0);
     } else {
-        // 空の場合はカーソルを中央に配置
+        // 空の場合は不可視文字を挿入してカーソルを中央に
         cell.classList.add('has-content');
+        cell.textContent = ZERO_WIDTH_SPACE;
+        
+        // カーソルを不可視文字の後ろに配置
+        setTimeout(() => {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.setStart(cell.firstChild, 1);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }, 0);
     }
 }
 
+function cleanText(text) {
+    // 不可視文字を削除してトリム
+    return text.replace(/\u200B/g, '').trim();
+}
+
 function updatePlaceholderClass(cell) {
-    if (cell.textContent.trim()) {
+    const text = cleanText(cell.textContent);
+    if (text) {
         cell.classList.add('has-content');
     } else {
         cell.classList.remove('has-content');
