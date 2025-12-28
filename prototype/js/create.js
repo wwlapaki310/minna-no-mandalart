@@ -290,7 +290,7 @@ function updateThemeCells() {
 }
 
 // ========================================
-// スマホ版: 段階的入力（改良版）
+// スマホ版: アコーディオン展開型
 // ========================================
 
 function initMobileView() {
@@ -300,10 +300,7 @@ function initMobileView() {
     renderMobileCenterBlock();
     
     // イベントリスナー
-    document.getElementById('mobile-next-btn').addEventListener('click', showMobileDetails);
-    document.getElementById('mobile-prev-btn').addEventListener('click', () => navigateMobileTheme(-1));
-    document.getElementById('mobile-next-theme').addEventListener('click', () => navigateMobileTheme(1));
-    document.getElementById('mobile-back-center').addEventListener('click', showMobileCenterBlock);
+    document.getElementById('btn-close-accordion').addEventListener('click', closeAccordion);
     document.getElementById('mobile-complete-btn').addEventListener('click', completeMandalart);
 }
 
@@ -379,56 +376,22 @@ function toggleExpandButton(cell, themeIndex) {
     expandBtn.innerHTML = '展開 →';
     expandBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        showMobileDetailsForTheme(themeIndex);
+        openAccordion(themeIndex);
     });
     
     cell.appendChild(expandBtn);
 }
 
-function showMobileDetailsForTheme(themeIndex) {
+function openAccordion(themeIndex) {
     currentThemeIndex = themeIndex;
-    document.getElementById('mobile-center-block').classList.add('hidden');
-    document.getElementById('mobile-details').classList.remove('hidden');
-    renderMobileThemeDetails();
-}
-
-function showMobileDetails() {
-    // 検証
-    if (!mandalartData.center.trim()) {
-        alert('大目標を入力してください');
-        return;
-    }
+    const accordion = document.getElementById('mobile-details-accordion');
+    const theme = mandalartData.themes[themeIndex];
     
-    const filledThemes = mandalartData.themes.filter(t => t.title.trim()).length;
-    if (filledThemes < 8) {
-        alert(`8つ全ての中目標を入力してください（現在${filledThemes}/8）`);
-        return;
-    }
+    // タイトルを設定
+    document.getElementById('accordion-theme-title').textContent = theme.title || `中目標${themeIndex + 1}`;
     
-    currentThemeIndex = 0;
-    document.getElementById('mobile-center-block').classList.add('hidden');
-    document.getElementById('mobile-details').classList.remove('hidden');
-    renderMobileThemeDetails();
-}
-
-function showMobileCenterBlock() {
-    // 展開ボタンをすべて削除
-    document.querySelectorAll('.expand-button').forEach(btn => btn.remove());
-    
-    document.getElementById('mobile-center-block').classList.remove('hidden');
-    document.getElementById('mobile-details').classList.add('hidden');
-}
-
-function renderMobileThemeDetails() {
-    const theme = mandalartData.themes[currentThemeIndex];
-    
-    // タイトルと進捗
-    document.getElementById('mobile-theme-title').textContent = theme.title;
-    document.getElementById('mobile-progress-text').textContent = `中目標 ${currentThemeIndex + 1}/8`;
-    document.getElementById('mobile-progress-fill').style.width = `${((currentThemeIndex + 1) / 8) * 100}%`;
-    
-    // 個別目標リスト
-    const container = document.getElementById('mobile-details-list');
+    // 個別目標リストを作成
+    const container = document.getElementById('accordion-details-list');
     container.innerHTML = '';
     
     for (let i = 0; i < 8; i++) {
@@ -453,16 +416,21 @@ function renderMobileThemeDetails() {
         container.appendChild(item);
     }
     
-    // ナビゲーションボタンの表示制御
-    document.getElementById('mobile-prev-btn').style.display = currentThemeIndex === 0 ? 'none' : 'inline-block';
-    document.getElementById('mobile-next-theme').style.display = currentThemeIndex === 7 ? 'none' : 'inline-block';
-    document.getElementById('mobile-complete-btn').style.display = currentThemeIndex === 7 ? 'block' : 'none';
+    // アコーディオンを表示
+    accordion.classList.remove('hidden');
+    
+    // 展開ボタンをすべて削除
+    document.querySelectorAll('.expand-button').forEach(btn => btn.remove());
+    
+    // スムーズスクロール
+    setTimeout(() => {
+        accordion.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
 }
 
-function navigateMobileTheme(direction) {
-    currentThemeIndex += direction;
-    currentThemeIndex = Math.max(0, Math.min(7, currentThemeIndex));
-    renderMobileThemeDetails();
+function closeAccordion() {
+    const accordion = document.getElementById('mobile-details-accordion');
+    accordion.classList.add('hidden');
 }
 
 // ========================================
