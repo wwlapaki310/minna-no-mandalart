@@ -107,6 +107,10 @@ function createDesktopCell(index) {
         cell.textContent = mandalartData.center;
         cell.setAttribute('placeholder', '大目標');
         
+        cell.addEventListener('focus', () => {
+            selectAllText(cell);
+        });
+        
         cell.addEventListener('blur', () => {
             mandalartData.center = cell.textContent.trim();
             saveToStorage();
@@ -118,8 +122,12 @@ function createDesktopCell(index) {
         cell.classList.add('cell-theme');
         cell.contentEditable = true;
         cell.textContent = mandalartData.themes[themeIndex].title;
-        cell.setAttribute('placeholder', `中目標${themeIndex + 1}`);
+        cell.setAttribute('placeholder', '');
         cell.dataset.themeIndex = themeIndex;
+        
+        cell.addEventListener('focus', () => {
+            selectAllText(cell);
+        });
         
         cell.addEventListener('blur', () => {
             mandalartData.themes[themeIndex].title = cell.textContent.trim();
@@ -132,8 +140,12 @@ function createDesktopCell(index) {
         cell.classList.add('cell-theme');
         cell.contentEditable = true;
         cell.textContent = mandalartData.themes[themeIndex].title;
-        cell.setAttribute('placeholder', `中目標${themeIndex + 1}`);
+        cell.setAttribute('placeholder', '');
         cell.dataset.themeIndex = themeIndex;
+        
+        cell.addEventListener('focus', () => {
+            selectAllText(cell);
+        });
         
         cell.addEventListener('blur', () => {
             mandalartData.themes[themeIndex].title = cell.textContent.trim();
@@ -147,9 +159,13 @@ function createDesktopCell(index) {
         cell.classList.add('cell-detail');
         cell.contentEditable = true;
         cell.textContent = mandalartData.themes[themeIndex].details[detailIndex];
-        cell.setAttribute('placeholder', '個別目標');
+        cell.setAttribute('placeholder', '');
         cell.dataset.themeIndex = themeIndex;
         cell.dataset.detailIndex = detailIndex;
+        
+        cell.addEventListener('focus', () => {
+            selectAllText(cell);
+        });
         
         cell.addEventListener('blur', () => {
             mandalartData.themes[themeIndex].details[detailIndex] = cell.textContent.trim();
@@ -166,6 +182,20 @@ function createDesktopCell(index) {
     });
     
     return cell;
+}
+
+function selectAllText(element) {
+    // テキストが空の場合は何もしない
+    if (!element.textContent.trim()) {
+        return;
+    }
+    
+    // テキストを全選択
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
 }
 
 function updateThemeCells() {
@@ -224,7 +254,7 @@ function renderMobileCenterBlock() {
             // 中目標
             cell.classList.add('mobile-cell-theme');
             input.value = mandalartData.themes[themeIndex].title;
-            input.placeholder = `中目標${themeIndex + 1}`;
+            input.placeholder = '';
             input.dataset.themeIndex = themeIndex;
             input.addEventListener('input', (e) => {
                 mandalartData.themes[themeIndex].title = e.target.value;
@@ -284,7 +314,7 @@ function renderMobileThemeDetails() {
         input.type = 'text';
         input.maxLength = 50;
         input.value = theme.details[i];
-        input.placeholder = '具体的な行動を入力';
+        input.placeholder = '';
         input.addEventListener('input', (e) => {
             mandalartData.themes[currentThemeIndex].details[i] = e.target.value;
             saveToStorage();
