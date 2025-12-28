@@ -231,32 +231,54 @@ async function downloadImage() {
     }
 
     try {
-        // グラデーション問題を回避するため、一時的に背景色を単色に変更
-        const centerCells = document.querySelectorAll('.mandalart-cell.center');
-        const themeCells = document.querySelectorAll('.mandalart-cell.sub-theme');
+        // すべてのセルを取得
+        const allCells = document.querySelectorAll('.mandalart-cell');
         
-        // 元のスタイルを保存
-        const originalStyles = new Map();
-        centerCells.forEach(cell => {
-            originalStyles.set(cell, cell.style.cssText);
-            cell.style.background = '#DC143C'; // 紅白の赤
-            cell.style.color = 'white';
+        // 元のスタイルとクラスを保存
+        const originalData = new Map();
+        
+        // アニメーションを無効化して、全セルのスタイルを強制設定
+        allCells.forEach(cell => {
+            originalData.set(cell, {
+                style: cell.style.cssText,
+                animation: cell.style.animation
+            });
+            
+            // アニメーションを無効化
+            cell.style.animation = 'none';
+            
+            // クラスに応じて背景色を強制設定
+            if (cell.classList.contains('center')) {
+                cell.style.setProperty('background', '#DC143C', 'important');
+                cell.style.setProperty('background-image', 'none', 'important');
+                cell.style.setProperty('color', 'white', 'important');
+                cell.style.setProperty('font-weight', 'bold', 'important');
+            } else if (cell.classList.contains('sub-theme')) {
+                cell.style.setProperty('background', '#317873', 'important');
+                cell.style.setProperty('background-image', 'none', 'important');
+                cell.style.setProperty('color', 'white', 'important');
+                cell.style.setProperty('font-weight', '600', 'important');
+            } else if (cell.classList.contains('detail')) {
+                cell.style.setProperty('background', 'white', 'important');
+                cell.style.setProperty('background-image', 'none', 'important');
+            }
         });
-        themeCells.forEach(cell => {
-            originalStyles.set(cell, cell.style.cssText);
-            cell.style.background = '#317873'; // 松葉色
-            cell.style.color = 'white';
-        });
+        
+        // 少し待ってからキャプチャ（スタイル適用を確実にする）
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         const canvas = await html2canvas(container, {
             backgroundColor: '#FFF9F0',
             scale: 2,
-            logging: false
+            logging: false,
+            useCORS: true,
+            allowTaint: true
         });
 
         // スタイルを元に戻す
-        originalStyles.forEach((style, cell) => {
-            cell.style.cssText = style;
+        originalData.forEach((data, cell) => {
+            cell.style.cssText = data.style;
+            cell.style.animation = data.animation;
         });
 
         // 画像をダウンロード
