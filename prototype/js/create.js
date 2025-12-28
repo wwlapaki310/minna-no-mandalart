@@ -117,71 +117,28 @@ function createDesktopCell(index) {
         const themeIndex = getThemeIndexFromInner(innerRow, innerCol);
         cell.classList.add('cell-theme');
         cell.contentEditable = true;
+        cell.textContent = mandalartData.themes[themeIndex].title;
+        cell.setAttribute('placeholder', `中目標${themeIndex + 1}`);
         cell.dataset.themeIndex = themeIndex;
         
-        // テキストコンテナとラベルを作成
-        const label = document.createElement('div');
-        label.className = 'cell-label';
-        label.textContent = `中目標${themeIndex + 1}`;
-        
-        const content = document.createElement('div');
-        content.className = 'cell-content';
-        content.contentEditable = true;
-        content.textContent = mandalartData.themes[themeIndex].title;
-        content.setAttribute('placeholder', '入力してください');
-        
-        cell.appendChild(label);
-        cell.appendChild(content);
-        
-        // contentEditableはcontentのみ
-        cell.contentEditable = false;
-        
-        content.addEventListener('blur', () => {
-            mandalartData.themes[themeIndex].title = content.textContent.trim();
+        cell.addEventListener('blur', () => {
+            mandalartData.themes[themeIndex].title = cell.textContent.trim();
             saveToStorage();
             updateThemeCells();
-        });
-        
-        content.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                content.blur();
-            }
         });
     } else if (isCenterCell) {
-        // 中目標（周辺ブロックの中心）- 編集可能に変更
+        // 中目標（周辺ブロックの中心）- 編集可能
         const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
         cell.classList.add('cell-theme');
+        cell.contentEditable = true;
+        cell.textContent = mandalartData.themes[themeIndex].title;
+        cell.setAttribute('placeholder', `中目標${themeIndex + 1}`);
         cell.dataset.themeIndex = themeIndex;
         
-        // テキストコンテナとラベルを作成
-        const label = document.createElement('div');
-        label.className = 'cell-label';
-        label.textContent = `中目標${themeIndex + 1}`;
-        
-        const content = document.createElement('div');
-        content.className = 'cell-content';
-        content.contentEditable = true;
-        content.textContent = mandalartData.themes[themeIndex].title;
-        content.setAttribute('placeholder', '入力してください');
-        
-        cell.appendChild(label);
-        cell.appendChild(content);
-        
-        // contentEditableはcontentのみ
-        cell.contentEditable = false;
-        
-        content.addEventListener('blur', () => {
-            mandalartData.themes[themeIndex].title = content.textContent.trim();
+        cell.addEventListener('blur', () => {
+            mandalartData.themes[themeIndex].title = cell.textContent.trim();
             saveToStorage();
             updateThemeCells();
-        });
-        
-        content.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                content.blur();
-            }
         });
     } else {
         // 個別目標
@@ -198,15 +155,15 @@ function createDesktopCell(index) {
             mandalartData.themes[themeIndex].details[detailIndex] = cell.textContent.trim();
             saveToStorage();
         });
-        
-        // Enterキーで次のセルに
-        cell.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                cell.blur();
-            }
-        });
     }
+    
+    // Enterキーで次のセルに
+    cell.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            cell.blur();
+        }
+    });
     
     return cell;
 }
@@ -216,9 +173,8 @@ function updateThemeCells() {
     const cells = document.querySelectorAll('.mandalart-cell.cell-theme');
     cells.forEach(cell => {
         const themeIndex = parseInt(cell.dataset.themeIndex);
-        const content = cell.querySelector('.cell-content');
-        if (content && document.activeElement !== content) {
-            content.textContent = mandalartData.themes[themeIndex].title;
+        if (document.activeElement !== cell) {
+            cell.textContent = mandalartData.themes[themeIndex].title;
         }
     });
 }
