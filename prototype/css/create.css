@@ -93,8 +93,8 @@
     background: rgba(49, 120, 115, 0.05);
 }
 
-/* プレースホルダー表示 */
-.mandalart-cell:empty:before {
+/* プレースホルダー表示（テキストがない時だけ） */
+.mandalart-cell:not(.has-content)::before {
     content: attr(data-placeholder);
     color: var(--color-text-light);
     font-size: 0.75rem;
@@ -115,7 +115,7 @@
     font-size: 1rem;
 }
 
-.mandalart-cell.cell-main:empty:before {
+.mandalart-cell.cell-main:not(.has-content)::before {
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.85rem;
 }
@@ -127,7 +127,7 @@
     font-size: 0.9rem;
 }
 
-.mandalart-cell.cell-theme:empty:before {
+.mandalart-cell.cell-theme:not(.has-content)::before {
     color: rgba(255, 255, 255, 0.6);
 }
 
