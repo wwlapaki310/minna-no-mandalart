@@ -234,51 +234,73 @@ async function downloadImage() {
         // すべてのセルを取得
         const allCells = document.querySelectorAll('.mandalart-cell');
         
-        // 元のスタイルとクラスを保存
+        // 元のスタイルを保存
         const originalData = new Map();
         
-        // アニメーションを無効化して、全セルのスタイルを強制設定
+        // 全セルのスタイルを完全にリセットして再設定
         allCells.forEach(cell => {
+            // 元のスタイルを保存
             originalData.set(cell, {
-                style: cell.style.cssText,
-                animation: cell.style.animation
+                cssText: cell.style.cssText,
+                className: cell.className
             });
             
-            // アニメーションを無効化
-            cell.style.animation = 'none';
+            // すべてのスタイルをクリア
+            cell.style.cssText = '';
             
-            // クラスに応じて背景色を強制設定
+            // 共通スタイルを設定
+            cell.style.display = 'flex';
+            cell.style.alignItems = 'center';
+            cell.style.justifyContent = 'center';
+            cell.style.padding = '8px';
+            cell.style.fontSize = '0.85rem';
+            cell.style.textAlign = 'center';
+            cell.style.wordBreak = 'break-word';
+            cell.style.aspectRatio = '1';
+            cell.style.position = 'relative';
+            cell.style.overflow = 'hidden';
+            cell.style.minHeight = '0';
+            cell.style.border = 'none';
+            cell.style.boxSizing = 'border-box';
+            
+            // タイプ別の背景色とテキスト色を設定
             if (cell.classList.contains('center')) {
-                cell.style.setProperty('background', '#DC143C', 'important');
-                cell.style.setProperty('background-image', 'none', 'important');
-                cell.style.setProperty('color', 'white', 'important');
-                cell.style.setProperty('font-weight', 'bold', 'important');
+                cell.style.backgroundColor = '#DC143C';
+                cell.style.color = 'white';
+                cell.style.fontWeight = 'bold';
+                cell.style.fontSize = '1.1rem';
             } else if (cell.classList.contains('sub-theme')) {
-                cell.style.setProperty('background', '#317873', 'important');
-                cell.style.setProperty('background-image', 'none', 'important');
-                cell.style.setProperty('color', 'white', 'important');
-                cell.style.setProperty('font-weight', '600', 'important');
-            } else if (cell.classList.contains('detail')) {
-                cell.style.setProperty('background', 'white', 'important');
-                cell.style.setProperty('background-image', 'none', 'important');
+                cell.style.backgroundColor = '#317873';
+                cell.style.color = 'white';
+                cell.style.fontWeight = '600';
+                cell.style.fontSize = '0.95rem';
+            } else {
+                cell.style.backgroundColor = 'white';
+                cell.style.color = '#333';
             }
         });
         
-        // 少し待ってからキャプチャ（スタイル適用を確実にする）
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // レンダリング完了を待つ（複数回のrequestAnimationFrameで確実に）
+        await new Promise(resolve => requestAnimationFrame(() => 
+            requestAnimationFrame(() => 
+                requestAnimationFrame(resolve)
+            )
+        ));
         
         const canvas = await html2canvas(container, {
             backgroundColor: '#FFF9F0',
             scale: 2,
             logging: false,
             useCORS: true,
-            allowTaint: true
+            allowTaint: true,
+            width: container.offsetWidth,
+            height: container.offsetHeight
         });
 
-        // スタイルを元に戻す
+        // スタイルとクラスを元に戻す
         originalData.forEach((data, cell) => {
-            cell.style.cssText = data.style;
-            cell.style.animation = data.animation;
+            cell.style.cssText = data.cssText;
+            cell.className = data.className;
         });
 
         // 画像をダウンロード
