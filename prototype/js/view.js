@@ -213,96 +213,99 @@ function shareMandalart() {
 }
 
 // ========================================
-// 画像保存機能
+// 画像保存機能（Canvas API直接描画）
 // ========================================
 
 async function downloadImage() {
-    const container = document.getElementById('mandalart-display');
-    
-    // html2canvasライブラリを動的に読み込み
-    if (!window.html2canvas) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-        document.head.appendChild(script);
-        
-        await new Promise((resolve) => {
-            script.onload = resolve;
-        });
-    }
-
     try {
-        // すべてのセルを取得
-        const allCells = document.querySelectorAll('.mandalart-cell');
+        // セルデータを取得
+        const cells = document.querySelectorAll('.mandalart-cell');
+        const cellSize = 100; // 各セルのサイズ（ピクセル）
+        const gap = 2; // セル間の隙間
+        const canvasSize = cellSize * 9 + gap * 10; // 9x9グリッド + 隙間
         
-        // 元のスタイルを保存
-        const originalData = new Map();
+        // Canvasを作成
+        const canvas = document.createElement('canvas');
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+        const ctx = canvas.getContext('2d');
         
-        // 全セルのスタイルを完全にリセットして再設定
-        allCells.forEach(cell => {
-            // 元のスタイルを保存
-            originalData.set(cell, {
-                cssText: cell.style.cssText,
-                className: cell.className
-            });
+        // 背景色
+        ctx.fillStyle = '#FFF9F0';
+        ctx.fillRect(0, 0, canvasSize, canvasSize);
+        
+        // 各セルを描画
+        cells.forEach((cell, index) => {
+            const row = Math.floor(index / 9);
+            const col = index % 9;
+            const x = gap + col * (cellSize + gap);
+            const y = gap + row * (cellSize + gap);
             
-            // すべてのスタイルをクリア
-            cell.style.cssText = '';
-            
-            // 共通スタイルを設定
-            cell.style.display = 'flex';
-            cell.style.alignItems = 'center';
-            cell.style.justifyContent = 'center';
-            cell.style.padding = '8px';
-            cell.style.fontSize = '0.85rem';
-            cell.style.textAlign = 'center';
-            cell.style.wordBreak = 'break-word';
-            cell.style.aspectRatio = '1';
-            cell.style.position = 'relative';
-            cell.style.overflow = 'hidden';
-            cell.style.minHeight = '0';
-            cell.style.border = 'none';
-            cell.style.boxSizing = 'border-box';
-            
-            // タイプ別の背景色とテキスト色を設定
+            // セルの背景色
             if (cell.classList.contains('center')) {
-                cell.style.backgroundColor = '#DC143C';
-                cell.style.color = 'white';
-                cell.style.fontWeight = 'bold';
-                cell.style.fontSize = '1.1rem';
+                ctx.fillStyle = '#DC143C'; // 紅白の赤
             } else if (cell.classList.contains('sub-theme')) {
-                cell.style.backgroundColor = '#317873';
-                cell.style.color = 'white';
-                cell.style.fontWeight = '600';
-                cell.style.fontSize = '0.95rem';
+                ctx.fillStyle = '#317873'; // 松葉色
             } else {
-                cell.style.backgroundColor = 'white';
-                cell.style.color = '#333';
+                ctx.fillStyle = '#FFFFFF'; // 白
+            }
+            ctx.fillRect(x, y, cellSize, cellSize);
+            
+            // テキスト
+            const text = cell.textContent.trim();
+            if (text) {
+                // テキスト色
+                if (cell.classList.contains('center') || cell.classList.contains('sub-theme')) {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = 'bold 14px "Noto Sans JP", sans-serif';
+                } else {
+                    ctx.fillStyle = '#333333';
+                    ctx.font = '12px "Noto Sans JP", sans-serif';
+                }
+                
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 改行処理
+                const maxWidth = cellSize - 10;
+                const lines = wrapText(ctx, text, maxWidth);
+                const lineHeight = 18;
+                const totalHeight = lines.length * lineHeight;
+                const startY = y + (cellSize - totalHeight) / 2 + lineHeight / 2;
+                
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, x + cellSize / 2, startY + i * lineHeight);
+                });
             }
         });
         
-        // レンダリング完了を待つ（複数回のrequestAnimationFrameで確実に）
-        await new Promise(resolve => requestAnimationFrame(() => 
-            requestAnimationFrame(() => 
-                requestAnimationFrame(resolve)
-            )
-        ));
+        // 3x3ブロックの境界線を描画
+        ctx.strokeStyle = '#DC143C';
+        ctx.lineWidth = 3;
         
-        const canvas = await html2canvas(container, {
-            backgroundColor: '#FFF9F0',
-            scale: 2,
-            logging: false,
-            useCORS: true,
-            allowTaint: true,
-            width: container.offsetWidth,
-            height: container.offsetHeight
-        });
-
-        // スタイルとクラスを元に戻す
-        originalData.forEach((data, cell) => {
-            cell.style.cssText = data.cssText;
-            cell.className = data.className;
-        });
-
+        // 縦線
+        for (let i = 1; i < 3; i++) {
+            const x = gap + i * 3 * (cellSize + gap) - gap / 2;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvasSize);
+            ctx.stroke();
+        }
+        
+        // 横線
+        for (let i = 1; i < 3; i++) {
+            const y = gap + i * 3 * (cellSize + gap) - gap / 2;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvasSize, y);
+            ctx.stroke();
+        }
+        
+        // 外枠
+        ctx.strokeStyle = '#DC143C';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(0, 0, canvasSize, canvasSize);
+        
         // 画像をダウンロード
         const link = document.createElement('a');
         const title = document.getElementById('mandalart-title').textContent;
@@ -313,8 +316,33 @@ async function downloadImage() {
         alert('画像の保存が完了しました！');
     } catch (error) {
         console.error('画像の保存に失敗:', error);
-        alert('画像の保存に失敗しました。スクリーンショットをお試しください。');
+        alert('画像の保存に失敗しました。');
     }
+}
+
+// テキストを折り返す関数
+function wrapText(ctx, text, maxWidth) {
+    const words = text.split('');
+    const lines = [];
+    let currentLine = '';
+    
+    for (let i = 0; i < words.length; i++) {
+        const testLine = currentLine + words[i];
+        const metrics = ctx.measureText(testLine);
+        
+        if (metrics.width > maxWidth && currentLine !== '') {
+            lines.push(currentLine);
+            currentLine = words[i];
+        } else {
+            currentLine = testLine;
+        }
+    }
+    
+    if (currentLine) {
+        lines.push(currentLine);
+    }
+    
+    return lines;
 }
 
 // ========================================
