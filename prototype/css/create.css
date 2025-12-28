@@ -240,6 +240,46 @@
     color: rgba(255, 255, 255, 0.6);
 }
 
+/* 展開ボタン */
+.expand-button {
+    position: absolute;
+    bottom: 0.25rem;
+    right: 0.25rem;
+    background: linear-gradient(135deg, var(--color-gold), var(--color-red));
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.expand-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.expand-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 /* 進捗表示 */
 .mobile-progress {
     margin-bottom: var(--spacing-lg);
@@ -395,5 +435,10 @@
     .mobile-detail-item input {
         padding: var(--spacing-sm);
         font-size: 0.9rem;
+    }
+    
+    .expand-button {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
     }
 }
