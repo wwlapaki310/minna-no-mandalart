@@ -80,7 +80,7 @@
     box-shadow: 0 4px 12px var(--color-shadow);
 }
 
-/* 中心のセル */
+/* 中心のセル（大目標） */
 .mandalart-cell.center {
     background: linear-gradient(135deg, var(--color-gold), var(--color-red));
     color: var(--color-white);
@@ -92,12 +92,21 @@
     transform: scale(1.1);
 }
 
-/* サブテーマのセル */
+/* サブテーマのセル（中目標） */
 .mandalart-cell.sub-theme {
     background: linear-gradient(135deg, var(--color-pine-light), var(--color-pine));
     color: var(--color-white);
     font-weight: 600;
     font-size: 0.95rem;
+}
+
+/* 個別目標のセル */
+.mandalart-cell.detail {
+    background: var(--color-white);
+}
+
+.mandalart-cell.detail:hover {
+    background: var(--color-bg);
 }
 
 /* 各3x3ブロックの境界を強調 */
@@ -182,7 +191,7 @@
     .mobile-detail-item {
         background: var(--color-bg);
         padding: var(--spacing-md);
-        border-radius: var(--radius-sm);
+        border-radius: var(--spacing-sm);
         border-left: 4px solid var(--color-pine);
         font-size: 0.95rem;
     }
