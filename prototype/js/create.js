@@ -290,7 +290,7 @@ function updateThemeCells() {
 }
 
 // ========================================
-// スマホ版: 段階的入力
+// スマホ版: 段階的入力（改良版）
 // ========================================
 
 function initMobileView() {
@@ -340,11 +340,56 @@ function renderMobileCenterBlock() {
                 mandalartData.themes[themeIndex].title = e.target.value;
                 saveToStorage();
             });
+            
+            // 中目標セルをタッチ可能に
+            cell.dataset.themeIndex = themeIndex;
+            cell.addEventListener('click', (e) => {
+                // inputをクリックした場合は展開ボタンを表示しない
+                if (e.target === input) {
+                    return;
+                }
+                toggleExpandButton(cell, themeIndex);
+            });
         }
         
         cell.appendChild(input);
         container.appendChild(cell);
     });
+}
+
+function toggleExpandButton(cell, themeIndex) {
+    // 既存の展開ボタンをすべて削除
+    document.querySelectorAll('.expand-button').forEach(btn => btn.remove());
+    
+    // 既にこのセルにボタンがある場合は削除のみ
+    if (cell.querySelector('.expand-button')) {
+        return;
+    }
+    
+    // 中目標が入力されているか確認
+    if (!mandalartData.themes[themeIndex].title.trim()) {
+        // 中目標が未入力の場合は入力欄にフォーカス
+        cell.querySelector('input').focus();
+        return;
+    }
+    
+    // 展開ボタンを作成
+    const expandBtn = document.createElement('button');
+    expandBtn.className = 'expand-button';
+    expandBtn.innerHTML = '展開 →';
+    expandBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showMobileDetailsForTheme(themeIndex);
+    });
+    
+    cell.appendChild(expandBtn);
+}
+
+function showMobileDetailsForTheme(themeIndex) {
+    currentThemeIndex = themeIndex;
+    document.getElementById('mobile-center-block').classList.add('hidden');
+    document.getElementById('mobile-details').classList.remove('hidden');
+    renderMobileThemeDetails();
 }
 
 function showMobileDetails() {
@@ -367,6 +412,9 @@ function showMobileDetails() {
 }
 
 function showMobileCenterBlock() {
+    // 展開ボタンをすべて削除
+    document.querySelectorAll('.expand-button').forEach(btn => btn.remove());
+    
     document.getElementById('mobile-center-block').classList.remove('hidden');
     document.getElementById('mobile-details').classList.add('hidden');
 }
