@@ -326,45 +326,55 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* 個別目標リスト */
+/* 個別目標3x3グリッド */
 .mobile-details-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    max-width: 100%;
+}
+
+.detail-grid-cell {
+    aspect-ratio: 1;
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
-
-.mobile-detail-item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-}
-
-.mobile-detail-item label {
-    font-weight: 600;
-    color: var(--color-pine);
-    font-size: 0.9rem;
-}
-
-.mobile-detail-item input {
-    padding: var(--spacing-md);
-    border: 2px solid var(--color-border);
+    align-items: center;
+    justify-content: center;
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    overflow: hidden;
+    background: white;
+    border: 2px solid var(--color-border);
+}
+
+.detail-grid-cell input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    background: transparent;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    position: relative;
-    z-index: 1;
 }
 
-.mobile-detail-item input:focus {
+.detail-grid-cell input:focus {
     outline: none;
-    border-color: var(--color-pine);
-    box-shadow: 0 0 0 3px rgba(49, 120, 115, 0.1);
+    background: rgba(49, 120, 115, 0.05);
 }
 
-.mobile-detail-item input::placeholder {
+.detail-grid-cell input::placeholder {
     color: var(--color-text-light);
+    font-size: 0.75rem;
+}
+
+/* 中央セル（中目標タイトル） */
+.detail-grid-cell.detail-center {
+    background: linear-gradient(135deg, var(--color-pine-light), var(--color-pine));
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 2px solid var(--color-pine);
 }
 
 /* ========================================
@@ -426,9 +436,13 @@
         font-size: 0.85rem;
     }
     
-    .mobile-detail-item input {
-        padding: var(--spacing-sm);
-        font-size: 0.9rem;
+    .detail-grid-cell input {
+        font-size: 0.75rem;
+        padding: 0.25rem;
+    }
+    
+    .detail-grid-cell.detail-center {
+        font-size: 0.8rem;
     }
     
     .expand-indicator {
