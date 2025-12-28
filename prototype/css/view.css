@@ -36,6 +36,18 @@
 }
 
 /* ========================================
+   レスポンシブ表示切り替え
+   ======================================== */
+
+.desktop-only {
+    display: block;
+}
+
+.mobile-only {
+    display: none;
+}
+
+/* ========================================
    9x9マンダラート表示
    ======================================== */
 
@@ -120,6 +132,38 @@
 }
 
 /* ========================================
+   モバイル用: 9x9画像表示
+   ======================================== */
+
+.mandalart-image-container {
+    margin-bottom: var(--spacing-2xl);
+    background: var(--color-white);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 16px var(--color-shadow);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.image-hint {
+    text-align: center;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.mandalart-image {
+    width: 100%;
+    max-width: 900px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    touch-action: pan-x pan-y pinch-zoom;
+}
+
+/* ========================================
    アクションボタン
    ======================================== */
 
@@ -144,6 +188,14 @@
 }
 
 @media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: block !important;
+    }
+    
     .mandalart-container {
         display: none;
     }
