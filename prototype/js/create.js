@@ -290,7 +290,7 @@ function updateThemeCells() {
 }
 
 // ========================================
-// スマホ版: アコーディオン展開型
+// スマホ版: アコーディオン展開型（改善版）
 // ========================================
 
 function initMobileView() {
@@ -338,48 +338,22 @@ function renderMobileCenterBlock() {
                 saveToStorage();
             });
             
-            // 中目標セルをタッチ可能に
-            cell.dataset.themeIndex = themeIndex;
-            cell.addEventListener('click', (e) => {
-                // inputをクリックした場合は展開ボタンを表示しない
-                if (e.target === input) {
-                    return;
-                }
-                toggleExpandButton(cell, themeIndex);
+            // 展開ボタンを常に表示（パッと見てわかる）
+            const expandBtn = document.createElement('div');
+            expandBtn.className = 'expand-indicator';
+            expandBtn.innerHTML = '⊕';
+            expandBtn.dataset.themeIndex = themeIndex;
+            expandBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openAccordion(themeIndex);
             });
+            
+            cell.appendChild(expandBtn);
         }
         
         cell.appendChild(input);
         container.appendChild(cell);
     });
-}
-
-function toggleExpandButton(cell, themeIndex) {
-    // 既存の展開ボタンをすべて削除
-    document.querySelectorAll('.expand-button').forEach(btn => btn.remove());
-    
-    // 既にこのセルにボタンがある場合は削除のみ
-    if (cell.querySelector('.expand-button')) {
-        return;
-    }
-    
-    // 中目標が入力されているか確認
-    if (!mandalartData.themes[themeIndex].title.trim()) {
-        // 中目標が未入力の場合は入力欄にフォーカス
-        cell.querySelector('input').focus();
-        return;
-    }
-    
-    // 展開ボタンを作成
-    const expandBtn = document.createElement('button');
-    expandBtn.className = 'expand-button';
-    expandBtn.innerHTML = '展開 →';
-    expandBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openAccordion(themeIndex);
-    });
-    
-    cell.appendChild(expandBtn);
 }
 
 function openAccordion(themeIndex) {
@@ -418,9 +392,6 @@ function openAccordion(themeIndex) {
     
     // アコーディオンを表示
     accordion.classList.remove('hidden');
-    
-    // 展開ボタンをすべて削除
-    document.querySelectorAll('.expand-button').forEach(btn => btn.remove());
     
     // スムーズスクロール
     setTimeout(() => {
