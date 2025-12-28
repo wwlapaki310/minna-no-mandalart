@@ -105,7 +105,7 @@ function createDesktopCell(index) {
         cell.classList.add('cell-main');
         cell.contentEditable = true;
         cell.textContent = mandalartData.center;
-        cell.setAttribute('placeholder', '大目標');
+        cell.setAttribute('data-placeholder', '大目標');
         
         cell.addEventListener('focus', () => {
             selectAllText(cell);
@@ -122,7 +122,7 @@ function createDesktopCell(index) {
         cell.classList.add('cell-theme');
         cell.contentEditable = true;
         cell.textContent = mandalartData.themes[themeIndex].title;
-        cell.setAttribute('placeholder', '');
+        cell.setAttribute('data-placeholder', `中目標${themeIndex + 1}`);
         cell.dataset.themeIndex = themeIndex;
         
         cell.addEventListener('focus', () => {
@@ -140,7 +140,7 @@ function createDesktopCell(index) {
         cell.classList.add('cell-theme');
         cell.contentEditable = true;
         cell.textContent = mandalartData.themes[themeIndex].title;
-        cell.setAttribute('placeholder', '');
+        cell.setAttribute('data-placeholder', `中目標${themeIndex + 1}`);
         cell.dataset.themeIndex = themeIndex;
         
         cell.addEventListener('focus', () => {
@@ -159,7 +159,7 @@ function createDesktopCell(index) {
         cell.classList.add('cell-detail');
         cell.contentEditable = true;
         cell.textContent = mandalartData.themes[themeIndex].details[detailIndex];
-        cell.setAttribute('placeholder', '');
+        cell.setAttribute('data-placeholder', '個別目標');
         cell.dataset.themeIndex = themeIndex;
         cell.dataset.detailIndex = detailIndex;
         
@@ -254,7 +254,7 @@ function renderMobileCenterBlock() {
             // 中目標
             cell.classList.add('mobile-cell-theme');
             input.value = mandalartData.themes[themeIndex].title;
-            input.placeholder = '';
+            input.placeholder = `中目標${themeIndex + 1}`;
             input.dataset.themeIndex = themeIndex;
             input.addEventListener('input', (e) => {
                 mandalartData.themes[themeIndex].title = e.target.value;
@@ -314,7 +314,7 @@ function renderMobileThemeDetails() {
         input.type = 'text';
         input.maxLength = 50;
         input.value = theme.details[i];
-        input.placeholder = '';
+        input.placeholder = '個別目標';
         input.addEventListener('input', (e) => {
             mandalartData.themes[currentThemeIndex].details[i] = e.target.value;
             saveToStorage();
