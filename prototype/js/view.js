@@ -33,6 +33,11 @@ function loadMandalart() {
     // 9x9マンダラートを表示
     displayFullMandalart(data);
     
+    // スマホ版では画像も生成
+    if (window.innerWidth < 768) {
+        generateMandalartImage(data);
+    }
+    
     // モバイル用セクション別表示
     displayMobileSections(data);
 }
@@ -140,6 +145,107 @@ function getDetailIndexFromInner(innerRow, innerCol) {
 }
 
 // ========================================
+// モバイル用: 画像生成
+// ========================================
+
+function generateMandalartImage(data) {
+    const cellSize = 100;
+    const gap = 2;
+    const canvasSize = cellSize * 9 + gap * 10;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+    const ctx = canvas.getContext('2d');
+    
+    // 背景色（白）
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvasSize, canvasSize);
+    
+    // 各セルを描画
+    for (let i = 0; i < 81; i++) {
+        const cellData = getCellData(data, i);
+        const row = Math.floor(i / 9);
+        const col = i % 9;
+        const x = gap + col * (cellSize + gap);
+        const y = gap + row * (cellSize + gap);
+        
+        // セルの背景色
+        if (cellData.type === 'center') {
+            ctx.fillStyle = '#DC143C';
+            ctx.fillRect(x, y, cellSize, cellSize);
+        } else if (cellData.type === 'sub-theme') {
+            ctx.fillStyle = '#317873';
+            ctx.fillRect(x, y, cellSize, cellSize);
+        }
+        
+        // テキスト
+        const text = cellData.content.trim();
+        if (text) {
+            if (cellData.type === 'center' || cellData.type === 'sub-theme') {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 14px sans-serif';
+            } else {
+                ctx.fillStyle = '#333333';
+                ctx.font = '12px sans-serif';
+            }
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const maxWidth = cellSize - 10;
+            const lines = wrapText(ctx, text, maxWidth);
+            const lineHeight = 18;
+            const totalHeight = lines.length * lineHeight;
+            const startY = y + (cellSize - totalHeight) / 2 + lineHeight / 2;
+            
+            lines.forEach((line, i) => {
+                ctx.fillText(line, x + cellSize / 2, startY + i * lineHeight);
+            });
+        }
+    }
+    
+    // グリッド線（薄いグレー）
+    ctx.strokeStyle = '#E0E0E0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 9; i++) {
+        const x = gap + i * (cellSize + gap) - gap / 2;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvasSize);
+        ctx.stroke();
+        
+        const y = gap + i * (cellSize + gap) - gap / 2;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasSize, y);
+        ctx.stroke();
+    }
+    
+    // 3x3ブロックの境界線（太い赤）
+    ctx.strokeStyle = '#DC143C';
+    ctx.lineWidth = 3;
+    
+    for (let i = 0; i <= 3; i++) {
+        const x = gap + i * 3 * (cellSize + gap) - gap / 2;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvasSize);
+        ctx.stroke();
+        
+        const y = gap + i * 3 * (cellSize + gap) - gap / 2;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasSize, y);
+        ctx.stroke();
+    }
+    
+    // 画像をimgタグに設定
+    const img = document.getElementById('mandalart-image');
+    img.src = canvas.toDataURL('image/png');
+}
+
+// ========================================
 // モバイル用セクション別表示
 // ========================================
 
@@ -218,13 +324,15 @@ function shareMandalart() {
 
 async function downloadImage() {
     try {
-        // セルデータを取得
-        const cells = document.querySelectorAll('.mandalart-cell');
-        const cellSize = 100; // 各セルのサイズ（ピクセル）
-        const gap = 2; // セル間の隙間
-        const canvasSize = cellSize * 9 + gap * 10; // 9x9グリッド + 隙間
+        // データ取得
+        const savedData = localStorage.getItem('current-mandalart');
+        if (!savedData) return;
+        const data = JSON.parse(savedData);
         
-        // Canvasを作成
+        const cellSize = 100;
+        const gap = 2;
+        const canvasSize = cellSize * 9 + gap * 10;
+        
         const canvas = document.createElement('canvas');
         canvas.width = canvasSize;
         canvas.height = canvasSize;
@@ -235,38 +343,36 @@ async function downloadImage() {
         ctx.fillRect(0, 0, canvasSize, canvasSize);
         
         // 各セルを描画
-        cells.forEach((cell, index) => {
-            const row = Math.floor(index / 9);
-            const col = index % 9;
+        for (let i = 0; i < 81; i++) {
+            const cellData = getCellData(data, i);
+            const row = Math.floor(i / 9);
+            const col = i % 9;
             const x = gap + col * (cellSize + gap);
             const y = gap + row * (cellSize + gap);
             
-            // セルの背景色（色付きセルのみ描画）
-            if (cell.classList.contains('center')) {
-                ctx.fillStyle = '#DC143C'; // 紅白の赤
+            // セルの背景色
+            if (cellData.type === 'center') {
+                ctx.fillStyle = '#DC143C';
                 ctx.fillRect(x, y, cellSize, cellSize);
-            } else if (cell.classList.contains('sub-theme')) {
-                ctx.fillStyle = '#317873'; // 松葉色
+            } else if (cellData.type === 'sub-theme') {
+                ctx.fillStyle = '#317873';
                 ctx.fillRect(x, y, cellSize, cellSize);
             }
-            // detail（白）は塗りつぶさない
             
             // テキスト
-            const text = cell.textContent.trim();
+            const text = cellData.content.trim();
             if (text) {
-                // テキスト色
-                if (cell.classList.contains('center') || cell.classList.contains('sub-theme')) {
+                if (cellData.type === 'center' || cellData.type === 'sub-theme') {
                     ctx.fillStyle = '#FFFFFF';
-                    ctx.font = 'bold 14px "Noto Sans JP", sans-serif';
+                    ctx.font = 'bold 14px sans-serif';
                 } else {
                     ctx.fillStyle = '#333333';
-                    ctx.font = '12px "Noto Sans JP", sans-serif';
+                    ctx.font = '12px sans-serif';
                 }
                 
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
-                // 改行処理
                 const maxWidth = cellSize - 10;
                 const lines = wrapText(ctx, text, maxWidth);
                 const lineHeight = 18;
@@ -277,20 +383,18 @@ async function downloadImage() {
                     ctx.fillText(line, x + cellSize / 2, startY + i * lineHeight);
                 });
             }
-        });
+        }
         
         // グリッド線（薄いグレー）
         ctx.strokeStyle = '#E0E0E0';
         ctx.lineWidth = 1;
         for (let i = 0; i <= 9; i++) {
-            // 縦線
             const x = gap + i * (cellSize + gap) - gap / 2;
             ctx.beginPath();
             ctx.moveTo(x, 0);
             ctx.lineTo(x, canvasSize);
             ctx.stroke();
             
-            // 横線
             const y = gap + i * (cellSize + gap) - gap / 2;
             ctx.beginPath();
             ctx.moveTo(0, y);
@@ -302,17 +406,13 @@ async function downloadImage() {
         ctx.strokeStyle = '#DC143C';
         ctx.lineWidth = 3;
         
-        // 縦線
         for (let i = 0; i <= 3; i++) {
             const x = gap + i * 3 * (cellSize + gap) - gap / 2;
             ctx.beginPath();
             ctx.moveTo(x, 0);
             ctx.lineTo(x, canvasSize);
             ctx.stroke();
-        }
-        
-        // 横線
-        for (let i = 0; i <= 3; i++) {
+            
             const y = gap + i * 3 * (cellSize + gap) - gap / 2;
             ctx.beginPath();
             ctx.moveTo(0, y);
