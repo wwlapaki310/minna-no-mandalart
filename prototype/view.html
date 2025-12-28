@@ -39,11 +39,17 @@
                 </div>
             </div>
 
-            <!-- 9x9マンダラート表示 -->
-            <div class="mandalart-container">
+            <!-- PC版: 9x9マンダラート表示 -->
+            <div class="mandalart-container desktop-only">
                 <div class="mandalart-full" id="mandalart-display">
                     <!-- JavaScriptで動的生成 -->
                 </div>
+            </div>
+
+            <!-- スマホ版: 9x9画像表示（ズーム可能） -->
+            <div class="mandalart-image-container mobile-only">
+                <p class="image-hint">💡 画像をピンチしてズームできます</p>
+                <img id="mandalart-image" alt="マンダラート完成図" class="mandalart-image">
             </div>
 
             <!-- アクションボタン -->
@@ -60,7 +66,7 @@
             </div>
 
             <!-- モバイル用: セクション別表示 -->
-            <div class="mobile-sections" id="mobile-sections">
+            <div class="mobile-sections mobile-only" id="mobile-sections">
                 <!-- JavaScriptで動的生成 -->
             </div>
         </div>
