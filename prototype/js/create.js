@@ -107,14 +107,26 @@ function createDesktopCell(index) {
         cell.textContent = mandalartData.center;
         cell.setAttribute('data-placeholder', '大目標');
         
+        // 初期状態でhas-contentクラスを設定
+        if (!mandalartData.center.trim()) {
+            cell.classList.remove('has-content');
+        } else {
+            cell.classList.add('has-content');
+        }
+        
         cell.addEventListener('focus', () => {
-            selectAllText(cell);
+            handleCellFocus(cell);
+        });
+        
+        cell.addEventListener('input', () => {
+            updatePlaceholderClass(cell);
         });
         
         cell.addEventListener('blur', () => {
             mandalartData.center = cell.textContent.trim();
             saveToStorage();
             updateThemeCells();
+            updatePlaceholderClass(cell);
         });
     } else if (isCenterBlock) {
         // 中目標（中央ブロック）
@@ -125,17 +137,28 @@ function createDesktopCell(index) {
         cell.setAttribute('data-placeholder', `中目標${themeIndex + 1}`);
         cell.dataset.themeIndex = themeIndex;
         
+        if (!mandalartData.themes[themeIndex].title.trim()) {
+            cell.classList.remove('has-content');
+        } else {
+            cell.classList.add('has-content');
+        }
+        
         cell.addEventListener('focus', () => {
-            selectAllText(cell);
+            handleCellFocus(cell);
+        });
+        
+        cell.addEventListener('input', () => {
+            updatePlaceholderClass(cell);
         });
         
         cell.addEventListener('blur', () => {
             mandalartData.themes[themeIndex].title = cell.textContent.trim();
             saveToStorage();
             updateThemeCells();
+            updatePlaceholderClass(cell);
         });
     } else if (isCenterCell) {
-        // 中目標（周辺ブロックの中心）- 編集可能
+        // 中目標（周辺ブロックの中心）
         const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
         cell.classList.add('cell-theme');
         cell.contentEditable = true;
@@ -143,14 +166,25 @@ function createDesktopCell(index) {
         cell.setAttribute('data-placeholder', `中目標${themeIndex + 1}`);
         cell.dataset.themeIndex = themeIndex;
         
+        if (!mandalartData.themes[themeIndex].title.trim()) {
+            cell.classList.remove('has-content');
+        } else {
+            cell.classList.add('has-content');
+        }
+        
         cell.addEventListener('focus', () => {
-            selectAllText(cell);
+            handleCellFocus(cell);
+        });
+        
+        cell.addEventListener('input', () => {
+            updatePlaceholderClass(cell);
         });
         
         cell.addEventListener('blur', () => {
             mandalartData.themes[themeIndex].title = cell.textContent.trim();
             saveToStorage();
             updateThemeCells();
+            updatePlaceholderClass(cell);
         });
     } else {
         // 個別目標
@@ -163,13 +197,24 @@ function createDesktopCell(index) {
         cell.dataset.themeIndex = themeIndex;
         cell.dataset.detailIndex = detailIndex;
         
+        if (!mandalartData.themes[themeIndex].details[detailIndex].trim()) {
+            cell.classList.remove('has-content');
+        } else {
+            cell.classList.add('has-content');
+        }
+        
         cell.addEventListener('focus', () => {
-            selectAllText(cell);
+            handleCellFocus(cell);
+        });
+        
+        cell.addEventListener('input', () => {
+            updatePlaceholderClass(cell);
         });
         
         cell.addEventListener('blur', () => {
             mandalartData.themes[themeIndex].details[detailIndex] = cell.textContent.trim();
             saveToStorage();
+            updatePlaceholderClass(cell);
         });
     }
     
@@ -184,18 +229,29 @@ function createDesktopCell(index) {
     return cell;
 }
 
-function selectAllText(element) {
-    // テキストが空の場合は何もしない
-    if (!element.textContent.trim()) {
-        return;
+function handleCellFocus(cell) {
+    const text = cell.textContent.trim();
+    if (text) {
+        // テキストがある場合は全選択
+        setTimeout(() => {
+            const range = document.createRange();
+            range.selectNodeContents(cell);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }, 0);
+    } else {
+        // 空の場合はカーソルを中央に配置
+        cell.classList.add('has-content');
     }
-    
-    // テキストを全選択
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
+}
+
+function updatePlaceholderClass(cell) {
+    if (cell.textContent.trim()) {
+        cell.classList.add('has-content');
+    } else {
+        cell.classList.remove('has-content');
+    }
 }
 
 function updateThemeCells() {
@@ -205,6 +261,7 @@ function updateThemeCells() {
         const themeIndex = parseInt(cell.dataset.themeIndex);
         if (document.activeElement !== cell) {
             cell.textContent = mandalartData.themes[themeIndex].title;
+            updatePlaceholderClass(cell);
         }
     });
 }
