@@ -180,7 +180,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
 }
 
 .mobile-cell {
@@ -280,42 +280,72 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* 進捗表示 */
-.mobile-progress {
-    margin-bottom: var(--spacing-lg);
+/* アコーディオン展開エリア */
+.mobile-details-accordion {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: var(--color-background);
+    border: 2px solid var(--color-pine);
+    border-radius: var(--radius-lg);
+    animation: slideDown 0.3s ease;
 }
 
-.mobile-progress #mobile-progress-text {
-    display: block;
-    text-align: center;
-    font-weight: 600;
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-top: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 2000px;
+        padding-top: var(--spacing-lg);
+        padding-bottom: var(--spacing-lg);
+        margin-top: var(--spacing-lg);
+    }
+}
+
+.mobile-details-accordion.hidden {
+    display: none;
+}
+
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.accordion-title {
+    font-size: 1.2rem;
     color: var(--color-pine);
-    margin-bottom: var(--spacing-sm);
+    font-weight: bold;
+    margin: 0;
 }
 
-.progress-bar {
-    height: 8px;
-    background: var(--color-border);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--color-pine), var(--color-gold));
-    transition: width 0.3s ease;
-}
-
-/* テーマタイトル */
-.mobile-theme-title {
-    font-size: 1.3rem;
-    color: var(--color-red);
-    text-align: center;
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-md);
-    background: var(--color-pine-light);
+.btn-close-accordion {
+    background: var(--color-red);
     color: white;
+    border: none;
+    padding: 0.5rem 1rem;
     border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-close-accordion:hover {
+    background: #B8111C;
+    transform: scale(1.05);
+}
+
+.btn-close-accordion:active {
+    transform: scale(0.98);
 }
 
 /* 個別目標リスト */
@@ -323,7 +353,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
 }
 
 .mobile-detail-item {
@@ -358,19 +387,6 @@
 
 .mobile-detail-item input::placeholder {
     color: var(--color-text-light);
-}
-
-/* ナビゲーション */
-.mobile-nav {
-    display: flex;
-    gap: var(--spacing-sm);
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-.mobile-nav .btn {
-    flex: 1;
-    min-width: 100px;
 }
 
 /* ========================================
@@ -440,5 +456,14 @@
     .expand-button {
         font-size: 0.65rem;
         padding: 0.25rem 0.5rem;
+    }
+    
+    .accordion-title {
+        font-size: 1rem;
+    }
+    
+    .btn-close-accordion {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
     }
 }
