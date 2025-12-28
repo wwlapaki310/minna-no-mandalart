@@ -189,7 +189,7 @@
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-md);
-    overflow: hidden;
+    overflow: visible;
     position: relative;
 }
 
@@ -208,6 +208,7 @@
     -moz-appearance: none;
     appearance: none;
     background: transparent;
+    border-radius: var(--radius-md);
 }
 
 .mobile-cell input:focus {
@@ -240,71 +241,45 @@
     color: rgba(255, 255, 255, 0.6);
 }
 
-/* 展開ボタン */
-.expand-button {
+/* パッと見てわかる展開ボタン（常に表示） */
+.expand-indicator {
     position: absolute;
-    bottom: 0.25rem;
-    right: 0.25rem;
-    background: linear-gradient(135deg, var(--color-gold), var(--color-red));
-    color: white;
-    border: none;
-    padding: 0.3rem 0.6rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
+    bottom: 4px;
+    right: 4px;
+    width: 28px;
+    height: 28px;
+    background: var(--color-gold);
+    color: #333;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: bold;
+    font-size: 18px;
     cursor: pointer;
     z-index: 10;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
     transition: all 0.2s ease;
-    animation: slideIn 0.2s ease;
+    border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.expand-indicator:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
-.expand-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.expand-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.expand-indicator:active {
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* アコーディオン展開エリア */
 .mobile-details-accordion {
     margin-top: var(--spacing-lg);
     padding: var(--spacing-lg);
-    background: var(--color-background);
-    border: 2px solid var(--color-pine);
+    background: #FFF9F0;
+    border: 3px solid var(--color-pine);
     border-radius: var(--radius-lg);
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        max-height: 0;
-        padding-top: 0;
-        padding-bottom: 0;
-        margin-top: 0;
-    }
-    to {
-        opacity: 1;
-        max-height: 2000px;
-        padding-top: var(--spacing-lg);
-        padding-bottom: var(--spacing-lg);
-        margin-top: var(--spacing-lg);
-    }
 }
 
 .mobile-details-accordion.hidden {
@@ -331,21 +306,24 @@
     background: var(--color-red);
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.2rem;
     border-radius: var(--radius-md);
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .btn-close-accordion:hover {
     background: #B8111C;
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .btn-close-accordion:active {
-    transform: scale(0.98);
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* 個別目標リスト */
@@ -453,9 +431,10 @@
         font-size: 0.9rem;
     }
     
-    .expand-button {
-        font-size: 0.65rem;
-        padding: 0.25rem 0.5rem;
+    .expand-indicator {
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
     }
     
     .accordion-title {
@@ -463,7 +442,7 @@
     }
     
     .btn-close-accordion {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
     }
 }
