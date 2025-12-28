@@ -230,8 +230,8 @@ async function downloadImage() {
         canvas.height = canvasSize;
         const ctx = canvas.getContext('2d');
         
-        // 背景色
-        ctx.fillStyle = '#FFF9F0';
+        // 背景色（白）
+        ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, canvasSize, canvasSize);
         
         // 各セルを描画
@@ -241,15 +241,15 @@ async function downloadImage() {
             const x = gap + col * (cellSize + gap);
             const y = gap + row * (cellSize + gap);
             
-            // セルの背景色
+            // セルの背景色（色付きセルのみ描画）
             if (cell.classList.contains('center')) {
                 ctx.fillStyle = '#DC143C'; // 紅白の赤
+                ctx.fillRect(x, y, cellSize, cellSize);
             } else if (cell.classList.contains('sub-theme')) {
                 ctx.fillStyle = '#317873'; // 松葉色
-            } else {
-                ctx.fillStyle = '#FFFFFF'; // 白
+                ctx.fillRect(x, y, cellSize, cellSize);
             }
-            ctx.fillRect(x, y, cellSize, cellSize);
+            // detail（白）は塗りつぶさない
             
             // テキスト
             const text = cell.textContent.trim();
@@ -279,12 +279,31 @@ async function downloadImage() {
             }
         });
         
-        // 3x3ブロックの境界線を描画
+        // グリッド線（薄いグレー）
+        ctx.strokeStyle = '#E0E0E0';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 9; i++) {
+            // 縦線
+            const x = gap + i * (cellSize + gap) - gap / 2;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvasSize);
+            ctx.stroke();
+            
+            // 横線
+            const y = gap + i * (cellSize + gap) - gap / 2;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvasSize, y);
+            ctx.stroke();
+        }
+        
+        // 3x3ブロックの境界線（太い赤）
         ctx.strokeStyle = '#DC143C';
         ctx.lineWidth = 3;
         
         // 縦線
-        for (let i = 1; i < 3; i++) {
+        for (let i = 0; i <= 3; i++) {
             const x = gap + i * 3 * (cellSize + gap) - gap / 2;
             ctx.beginPath();
             ctx.moveTo(x, 0);
@@ -293,18 +312,13 @@ async function downloadImage() {
         }
         
         // 横線
-        for (let i = 1; i < 3; i++) {
+        for (let i = 0; i <= 3; i++) {
             const y = gap + i * 3 * (cellSize + gap) - gap / 2;
             ctx.beginPath();
             ctx.moveTo(0, y);
             ctx.lineTo(canvasSize, y);
             ctx.stroke();
         }
-        
-        // 外枠
-        ctx.strokeStyle = '#DC143C';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(0, 0, canvasSize, canvasSize);
         
         // 画像をダウンロード
         const link = document.createElement('a');
