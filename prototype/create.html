@@ -42,9 +42,8 @@
                 </div>
             </div>
 
-            <!-- スマホ版: 段階的入力 -->
+            <!-- スマホ版: 中央ブロック完結型 -->
             <div class="mobile-view" id="mobile-view">
-                <!-- 中央ブロック表示 -->
                 <div class="mobile-step" id="mobile-center-block">
                     <h3 class="mobile-title">中央ブロック</h3>
                     <p class="mobile-desc">大目標と8つの中目標を入力してください</p>
@@ -52,32 +51,22 @@
                     <div class="mobile-center-grid" id="mobile-center-grid">
                         <!-- JavaScriptで動的生成 -->
                     </div>
-                    
-                    <button class="btn btn-primary btn-full" id="mobile-next-btn">個別目標を入力 →</button>
-                </div>
 
-                <!-- 個別目標入力 -->
-                <div class="mobile-step hidden" id="mobile-details">
-                    <div class="mobile-progress">
-                        <span id="mobile-progress-text">中目標 1/8</span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="mobile-progress-fill"></div>
+                    <!-- 個別目標展開エリア（アコーディオン） -->
+                    <div class="mobile-details-accordion hidden" id="mobile-details-accordion">
+                        <div class="accordion-header">
+                            <h4 class="accordion-title" id="accordion-theme-title">中目標1</h4>
+                            <button class="btn-close-accordion" id="btn-close-accordion">✕ 閉じる</button>
+                        </div>
+                        
+                        <div class="accordion-content">
+                            <div class="mobile-details-list" id="accordion-details-list">
+                                <!-- JavaScriptで動的生成 -->
+                            </div>
                         </div>
                     </div>
-
-                    <h3 class="mobile-theme-title" id="mobile-theme-title">中目標1</h3>
                     
-                    <div class="mobile-details-list" id="mobile-details-list">
-                        <!-- JavaScriptで動的生成 -->
-                    </div>
-
-                    <div class="mobile-nav">
-                        <button class="btn btn-secondary" id="mobile-prev-btn">← 前へ</button>
-                        <button class="btn btn-secondary" id="mobile-back-center">中央に戻る</button>
-                        <button class="btn btn-primary" id="mobile-next-theme">次へ →</button>
-                    </div>
-
-                    <button class="btn btn-primary btn-full" id="mobile-complete-btn" style="display: none; margin-top: 1rem;">完成！</button>
+                    <button class="btn btn-primary btn-full" id="mobile-complete-btn">完成！</button>
                 </div>
             </div>
 
@@ -87,7 +76,7 @@
                 <ul>
                     <li>中央に<strong>大目標</strong>を入力</li>
                     <li>周囲8マスに<strong>中目標</strong>を入力</li>
-                    <li>各中目標の周囲に<strong>個別目標</strong>を入力（PC版のみ直接入力）</li>
+                    <li>各中目標をタップして<strong>個別目標</strong>を入力</li>
                 </ul>
             </div>
         </div>
