@@ -37,9 +37,6 @@ function loadMandalart() {
     if (window.innerWidth < 768) {
         generateMandalartImage(data);
     }
-    
-    // モバイル用セクション別表示
-    displayMobileSections(data);
 }
 
 // ========================================
@@ -243,56 +240,6 @@ function generateMandalartImage(data) {
     // 画像をimgタグに設定
     const img = document.getElementById('mandalart-image');
     img.src = canvas.toDataURL('image/png');
-}
-
-// ========================================
-// モバイル用セクション別表示
-// ========================================
-
-function displayMobileSections(data) {
-    const container = document.getElementById('mobile-sections');
-    container.innerHTML = '';
-
-    // 中央のメインゴール
-    const centerSection = document.createElement('div');
-    centerSection.className = 'mobile-section';
-    centerSection.innerHTML = `
-        <div class="mobile-center">
-            ${data.center}
-        </div>
-    `;
-    container.appendChild(centerSection);
-
-    // 各テーマごとのセクション
-    data.themes.forEach((theme, index) => {
-        if (!theme.title.trim()) return;
-
-        const section = document.createElement('div');
-        section.className = 'mobile-section';
-
-        const header = document.createElement('div');
-        header.className = 'mobile-section-header';
-        header.textContent = `${index + 1}. ${theme.title}`;
-
-        const details = document.createElement('div');
-        details.className = 'mobile-details';
-
-        theme.details.forEach((detail, detailIndex) => {
-            if (!detail.trim()) return;
-
-            const item = document.createElement('div');
-            item.className = 'mobile-detail-item';
-            item.innerHTML = `
-                <span class="mobile-detail-number">${detailIndex + 1}</span>
-                ${detail}
-            `;
-            details.appendChild(item);
-        });
-
-        section.appendChild(header);
-        section.appendChild(details);
-        container.appendChild(section);
-    });
 }
 
 // ========================================
