@@ -180,12 +180,8 @@
 }
 
 /* ========================================
-   モバイル用セクション別表示
+   レスポンシブ
    ======================================== */
-
-.mobile-sections {
-    display: none;
-}
 
 @media (max-width: 768px) {
     .desktop-only {
@@ -194,72 +190,6 @@
 
     .mobile-only {
         display: block !important;
-    }
-    
-    .mandalart-container {
-        display: none;
-    }
-
-    .mobile-sections {
-        display: block;
-    }
-
-    .mobile-section {
-        margin-bottom: var(--spacing-xl);
-        background: var(--color-white);
-        border-radius: var(--radius-lg);
-        padding: var(--spacing-lg);
-        box-shadow: 0 4px 16px var(--color-shadow);
-    }
-
-    .mobile-section-header {
-        background: linear-gradient(135deg, var(--color-pine-light), var(--color-pine));
-        color: var(--color-white);
-        padding: var(--spacing-md);
-        border-radius: var(--radius-md);
-        margin-bottom: var(--spacing-md);
-        text-align: center;
-        font-weight: bold;
-        font-size: 1.1rem;
-    }
-
-    .mobile-center {
-        background: linear-gradient(135deg, var(--color-gold), var(--color-red));
-        color: var(--color-white);
-        padding: var(--spacing-lg);
-        border-radius: var(--radius-md);
-        margin-bottom: var(--spacing-xl);
-        text-align: center;
-        font-size: 1.5rem;
-        font-weight: bold;
-        box-shadow: 0 4px 12px var(--color-shadow);
-    }
-
-    .mobile-details {
-        display: grid;
-        gap: var(--spacing-sm);
-    }
-
-    .mobile-detail-item {
-        background: var(--color-bg);
-        padding: var(--spacing-md);
-        border-radius: var(--spacing-sm);
-        border-left: 4px solid var(--color-pine);
-        font-size: 0.95rem;
-    }
-
-    .mobile-detail-number {
-        display: inline-block;
-        width: 24px;
-        height: 24px;
-        background: var(--color-pine);
-        color: var(--color-white);
-        border-radius: 50%;
-        text-align: center;
-        line-height: 24px;
-        font-size: 0.8rem;
-        font-weight: bold;
-        margin-right: var(--spacing-sm);
     }
 
     .mandalart-title {
@@ -288,8 +218,7 @@
 @media print {
     .header,
     .footer,
-    .actions,
-    .mobile-sections {
+    .actions {
         display: none !important;
     }
 
