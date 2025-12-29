@@ -24,7 +24,6 @@ function loadMandalart() {
     
     // メタ情報を表示
     document.getElementById('mandalart-title').textContent = data.center;
-    document.getElementById('author-name').textContent = '匿名ユーザー';
     
     const createdDate = new Date(data.createdAt);
     document.getElementById('created-date').textContent = 
