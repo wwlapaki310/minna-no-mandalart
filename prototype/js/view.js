@@ -19,6 +19,7 @@ async function loadMandalart() {
     const mandalartId = urlParams.get('id');
     
     let data;
+    let userName = '匿名さん';  // デフォルト値
     
     if (mandalartId) {
         // SupabaseからデータをID取得
@@ -32,6 +33,9 @@ async function loadMandalart() {
                 themes: mandalart.themes,
                 createdAt: mandalart.created_at
             };
+            
+            // ユーザー名を取得
+            userName = mandalart.user_display_name || '匿名さん';
             
             console.log('データ取得成功:', data);
         } catch (error) {
@@ -55,6 +59,7 @@ async function loadMandalart() {
     
     // メタ情報を表示
     document.getElementById('mandalart-title').textContent = data.center;
+    document.getElementById('user-name').textContent = userName;
     
     const createdDate = new Date(data.createdAt);
     document.getElementById('created-date').textContent = 
