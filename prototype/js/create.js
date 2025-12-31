@@ -479,7 +479,7 @@ function resetMandalart() {
 }
 
 async function completeMandalart() {
-    // 検証
+    // 検証（大目標・中目標のみ必須、個別目標は任意）
     if (!mandalartData.center.trim()) {
         alert('大目標を入力してください');
         return;
@@ -488,15 +488,6 @@ async function completeMandalart() {
     const filledThemes = mandalartData.themes.filter(t => t.title.trim()).length;
     if (filledThemes < 8) {
         alert(`8つ全ての中目標を入力してください（現在${filledThemes}/8）`);
-        return;
-    }
-    
-    const totalDetails = mandalartData.themes.reduce((sum, t) => {
-        return sum + t.details.filter(d => d.trim()).length;
-    }, 0);
-    
-    if (totalDetails < 32) {
-        alert('各中目標の個別目標をもっと入力してください（最低でも各テーマ4つずつ）');
         return;
     }
     
