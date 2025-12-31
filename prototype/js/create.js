@@ -1,3 +1,6 @@
+// Supabase設定をインポート
+import { signInAnonymously, createMandalart, getCurrentUser } from './supabase-config.js';
+
 // マンダラートデータ構造
 const mandalartData = {
     center: '',
@@ -20,7 +23,10 @@ const ZERO_WIDTH_SPACE = '\u200B'; // カーソル位置制御用の不可視文
 // 初期化
 // ========================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // 匿名ログイン（自動）
+    await ensureAuthenticated();
+    
     // ローカルストレージから読み込み
     loadFromStorage();
     
@@ -34,6 +40,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // リサイズ時の処理
     window.addEventListener('resize', handleResize);
 });
+
+// ========================================
+// 認証
+// ========================================
+
+async function ensureAuthenticated() {
+    const user = await getCurrentUser();
+    
+    if (!user) {
+        console.log('匿名ログイン中...');
+        await signInAnonymously();
+        console.log('匿名ログイン完了');
+    }
+}
 
 // ========================================
 // ローカルストレージ
@@ -447,7 +467,7 @@ function getDetailIndexFromInner(innerRow, innerCol) {
 // ========================================
 
 function resetMandalart() {
-    if (confirm('入力内容をリセットしますか？\nこの操作は取り消せません。')) {
+    if (confirm('入力内容をリセットしますか?\nこの操作は取り消せません。')) {
         mandalartData.center = '';
         mandalartData.themes.forEach(theme => {
             theme.title = '';
@@ -458,7 +478,7 @@ function resetMandalart() {
     }
 }
 
-function completeMandalart() {
+async function completeMandalart() {
     // 検証
     if (!mandalartData.center.trim()) {
         alert('大目標を入力してください');
@@ -480,10 +500,27 @@ function completeMandalart() {
         return;
     }
     
+    // ローカルストレージに保存
     saveToStorage();
     
-    if (confirm('マンダラートが完成しました！\n表示ページに移動しますか？')) {
-        window.location.href = 'view.html';
+    try {
+        // Supabaseに保存
+        console.log('Supabaseに保存中...');
+        const savedMandalart = await createMandalart({
+            center: mandalartData.center,
+            themes: mandalartData.themes,
+            isPublic: true
+        });
+        
+        console.log('保存成功:', savedMandalart);
+        
+        // URLパラメータでIDを渡してview.htmlに移動
+        if (confirm('マンダラートが完成しました!\n表示ページに移動しますか？')) {
+            window.location.href = `view.html?id=${savedMandalart.id}`;
+        }
+    } catch (error) {
+        console.error('保存エラー:', error);
+        alert('保存に失敗しました。ネットワーク接続を確認してください。\n\nローカルには保存されているので、後で再度「完成」ボタンを押してください。');
     }
 }
 
