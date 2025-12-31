@@ -1,3 +1,6 @@
+// Supabase設定をインポート
+import { getMandalart } from './supabase-config.js';
+
 // ========================================
 // 初期化
 // ========================================
@@ -10,17 +13,45 @@ document.addEventListener('DOMContentLoaded', () => {
 // マンダラート読み込み
 // ========================================
 
-function loadMandalart() {
-    // ローカルストレージからデータを取得
-    const savedData = localStorage.getItem('current-mandalart');
+async function loadMandalart() {
+    // URLパラメータからIDを取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const mandalartId = urlParams.get('id');
     
-    if (!savedData) {
-        alert('マンダラートが見つかりません');
-        window.location.href = 'create.html';
-        return;
+    let data;
+    
+    if (mandalartId) {
+        // SupabaseからデータをID取得
+        try {
+            console.log('Supabaseからデータ取得中...', mandalartId);
+            const mandalart = await getMandalart(mandalartId);
+            
+            // Supabaseのデータ形式から変換
+            data = {
+                center: mandalart.center,
+                themes: mandalart.themes,
+                createdAt: mandalart.created_at
+            };
+            
+            console.log('データ取得成功:', data);
+        } catch (error) {
+            console.error('データ取得エラー:', error);
+            alert('マンダラートの読み込みに失敗しました');
+            window.location.href = 'index.html';
+            return;
+        }
+    } else {
+        // フォールバック: ローカルストレージからデータを取得（後方互換性）
+        const savedData = localStorage.getItem('current-mandalart');
+        
+        if (!savedData) {
+            alert('マンダラートが見つかりません');
+            window.location.href = 'create.html';
+            return;
+        }
+        
+        data = JSON.parse(savedData);
     }
-
-    const data = JSON.parse(savedData);
     
     // メタ情報を表示
     document.getElementById('mandalart-title').textContent = data.center;
@@ -36,6 +67,9 @@ function loadMandalart() {
     if (window.innerWidth < 768) {
         generateMandalartImage(data);
     }
+    
+    // グローバルに保存（画像ダウンロード用）
+    window.currentMandalartData = data;
 }
 
 // ========================================
@@ -270,10 +304,12 @@ function shareMandalart() {
 
 async function downloadImage() {
     try {
-        // データ取得
-        const savedData = localStorage.getItem('current-mandalart');
-        if (!savedData) return;
-        const data = JSON.parse(savedData);
+        // グローバルに保存されたデータを使用
+        const data = window.currentMandalartData;
+        if (!data) {
+            alert('データが読み込まれていません');
+            return;
+        }
         
         const cellSize = 100;
         const gap = 2;
