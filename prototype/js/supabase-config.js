@@ -95,6 +95,7 @@ export async function createMandalart(data) {
             center: data.center,
             themes: data.themes,
             is_public: data.isPublic !== undefined ? data.isPublic : true,
+            user_display_name: data.userDisplayName || '匿名さん',
             tags: data.tags || []
         })
         .select()
