@@ -115,6 +115,7 @@ export async function getPublicMandalarts(limit = 20, offset = 0) {
     const { data, error } = await supabase
         .from('mandalarts')
         .select('*')
+        .eq('is_public', true)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
     
