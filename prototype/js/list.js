@@ -95,7 +95,7 @@ function createMandalartCard(mandalart) {
         window.location.href = `view.html?id=${mandalart.id}`;
     };
     
-    // サムネイル画像を生成
+    // サムネイル画像を生成（3x3のみ）
     const thumbnail = generateThumbnail(mandalart);
     
     // 日付フォーマット
@@ -119,13 +119,13 @@ function createMandalartCard(mandalart) {
 }
 
 // ========================================
-// サムネイル生成（Canvas API）
+// サムネイル生成（3x3の中央ブロックのみ）
 // ========================================
 
 function generateThumbnail(mandalart) {
-    const cellSize = 30;
-    const gap = 1;
-    const canvasSize = cellSize * 9 + gap * 10;
+    const cellSize = 80;  // セルサイズを大きく
+    const gap = 2;
+    const canvasSize = cellSize * 3 + gap * 4;  // 3x3グリッド
     
     const canvas = document.createElement('canvas');
     canvas.width = canvasSize;
@@ -137,34 +137,70 @@ function generateThumbnail(mandalart) {
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvasSize, canvasSize);
     
+    // 中央3x3ブロックのレイアウト
+    // [0, 1, 2]
+    // [3, 中央, 4]
+    // [5, 6, 7]
+    const centerLayout = [
+        { themeIndex: 0, row: 0, col: 0 },
+        { themeIndex: 1, row: 0, col: 1 },
+        { themeIndex: 2, row: 0, col: 2 },
+        { themeIndex: 3, row: 1, col: 0 },
+        { themeIndex: -1, row: 1, col: 1 },  // 大目標
+        { themeIndex: 4, row: 1, col: 2 },
+        { themeIndex: 5, row: 2, col: 0 },
+        { themeIndex: 6, row: 2, col: 1 },
+        { themeIndex: 7, row: 2, col: 2 }
+    ];
+    
     // 各セルを描画
-    for (let i = 0; i < 81; i++) {
-        const cellData = getCellData(mandalart, i);
-        const row = Math.floor(i / 9);
-        const col = i % 9;
+    centerLayout.forEach(({ themeIndex, row, col }) => {
         const x = gap + col * (cellSize + gap);
         const y = gap + row * (cellSize + gap);
         
-        // セルの背景色
-        if (cellData.type === 'center') {
-            ctx.fillStyle = '#DC143C';
-            ctx.fillRect(x, y, cellSize, cellSize);
-        } else if (cellData.type === 'sub-theme') {
-            ctx.fillStyle = '#317873';
-            ctx.fillRect(x, y, cellSize, cellSize);
+        let bgColor, textColor, text, isBold;
+        
+        if (themeIndex === -1) {
+            // 大目標（中央）
+            bgColor = '#DC143C';
+            textColor = '#FFFFFF';
+            text = mandalart.center;
+            isBold = true;
         } else {
-            // 個別目標は白背景のまま
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(x, y, cellSize, cellSize);
+            // 中目標
+            bgColor = '#317873';
+            textColor = '#FFFFFF';
+            text = mandalart.themes[themeIndex]?.title || '';
+            isBold = true;
         }
         
-        // 小さすぎるのでテキストは描画しない（色だけで判別）
-    }
+        // セルの背景色
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(x, y, cellSize, cellSize);
+        
+        // テキスト
+        if (text && text.trim()) {
+            ctx.fillStyle = textColor;
+            ctx.font = isBold ? 'bold 14px sans-serif' : '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const maxWidth = cellSize - 10;
+            const lines = wrapText(ctx, text.trim(), maxWidth);
+            const lineHeight = 18;
+            const totalHeight = lines.length * lineHeight;
+            const startY = y + (cellSize - totalHeight) / 2 + lineHeight / 2;
+            
+            lines.forEach((line, i) => {
+                ctx.fillText(line, x + cellSize / 2, startY + i * lineHeight);
+            });
+        }
+    });
     
     // グリッド線（薄いグレー）
     ctx.strokeStyle = '#E0E0E0';
     ctx.lineWidth = 1;
-    for (let i = 0; i <= 9; i++) {
+    for (let i = 0; i <= 3; i++) {
         const x = gap + i * (cellSize + gap) - gap / 2;
         ctx.beginPath();
         ctx.moveTo(x, 0);
@@ -178,103 +214,38 @@ function generateThumbnail(mandalart) {
         ctx.stroke();
     }
     
-    // 3x3ブロックの境界線（太い赤）
+    // 外枠（太い赤）
     ctx.strokeStyle = '#DC143C';
-    ctx.lineWidth = 2;
-    
-    for (let i = 0; i <= 3; i++) {
-        const x = gap + i * 3 * (cellSize + gap) - gap / 2;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvasSize);
-        ctx.stroke();
-        
-        const y = gap + i * 3 * (cellSize + gap) - gap / 2;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvasSize, y);
-        ctx.stroke();
-    }
+    ctx.lineWidth = 3;
+    ctx.strokeRect(1.5, 1.5, canvasSize - 3, canvasSize - 3);
     
     return canvas.outerHTML;
 }
 
-// ========================================
-// セルデータ取得（view.jsと同じロジック）
-// ========================================
-
-function getCellData(mandalart, index) {
-    const data = {
-        center: mandalart.center,
-        themes: mandalart.themes
-    };
+// テキストを折り返す関数
+function wrapText(ctx, text, maxWidth) {
+    const words = text.split('');
+    const lines = [];
+    let currentLine = '';
     
-    // 位置情報を計算
-    const blockRow = Math.floor(index / 27);
-    const blockCol = Math.floor((index % 9) / 3);
-    const innerRow = Math.floor((index % 27) / 9);
-    const innerCol = (index % 9) % 3;
-    
-    // セルの種類を判定
-    const isCenterBlock = (blockRow === 1 && blockCol === 1);
-    const isCenterCell = (innerRow === 1 && innerCol === 1);
-    
-    if (isCenterBlock && isCenterCell) {
-        // 大目標
-        return {
-            type: 'center',
-            content: data.center
-        };
-    } else if (isCenterBlock) {
-        // 中目標（中央ブロック）
-        const themeIndex = getThemeIndexFromInner(innerRow, innerCol);
-        return {
-            type: 'sub-theme',
-            content: data.themes[themeIndex]?.title || ''
-        };
-    } else if (isCenterCell) {
-        // 中目標（周辺ブロックの中心）
-        const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
-        return {
-            type: 'sub-theme',
-            content: data.themes[themeIndex]?.title || ''
-        };
-    } else {
-        // 個別目標
-        const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
-        const detailIndex = getDetailIndexFromInner(innerRow, innerCol);
-        return {
-            type: 'detail',
-            content: data.themes[themeIndex]?.details[detailIndex] || ''
-        };
+    for (let i = 0; i < words.length; i++) {
+        const testLine = currentLine + words[i];
+        const metrics = ctx.measureText(testLine);
+        
+        if (metrics.width > maxWidth && currentLine !== '') {
+            lines.push(currentLine);
+            currentLine = words[i];
+        } else {
+            currentLine = testLine;
+        }
     }
-}
-
-function getThemeIndexFromInner(innerRow, innerCol) {
-    const positions = [
-        [0, 1, 2],
-        [3, -1, 4],
-        [5, 6, 7]
-    ];
-    return positions[innerRow][innerCol];
-}
-
-function getThemeIndexFromBlock(blockRow, blockCol) {
-    const positions = [
-        [0, 1, 2],
-        [3, -1, 4],
-        [5, 6, 7]
-    ];
-    return positions[blockRow][blockCol];
-}
-
-function getDetailIndexFromInner(innerRow, innerCol) {
-    const positions = [
-        [0, 1, 2],
-        [3, -1, 4],
-        [5, 6, 7]
-    ];
-    return positions[innerRow][innerCol];
+    
+    if (currentLine) {
+        lines.push(currentLine);
+    }
+    
+    // 最大3行まで
+    return lines.slice(0, 3);
 }
 
 // ========================================
