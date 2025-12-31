@@ -123,9 +123,9 @@ function createMandalartCard(mandalart) {
 // ========================================
 
 function generateThumbnail(mandalart) {
-    const cellSize = 80;  // セルサイズを大きく
+    const cellSize = 80;
     const gap = 2;
-    const canvasSize = cellSize * 3 + gap * 4;  // 3x3グリッド
+    const canvasSize = cellSize * 3 + gap * 4;
     
     const canvas = document.createElement('canvas');
     canvas.width = canvasSize;
@@ -138,9 +138,6 @@ function generateThumbnail(mandalart) {
     ctx.fillRect(0, 0, canvasSize, canvasSize);
     
     // 中央3x3ブロックのレイアウト
-    // [0, 1, 2]
-    // [3, 中央, 4]
-    // [5, 6, 7]
     const centerLayout = [
         { themeIndex: 0, row: 0, col: 0 },
         { themeIndex: 1, row: 0, col: 1 },
@@ -158,42 +155,44 @@ function generateThumbnail(mandalart) {
         const x = gap + col * (cellSize + gap);
         const y = gap + row * (cellSize + gap);
         
-        let bgColor, textColor, text, isBold;
+        let bgColor, textColor, text;
         
         if (themeIndex === -1) {
             // 大目標（中央）
             bgColor = '#DC143C';
             textColor = '#FFFFFF';
             text = mandalart.center;
-            isBold = true;
         } else {
             // 中目標
             bgColor = '#317873';
             textColor = '#FFFFFF';
             text = mandalart.themes[themeIndex]?.title || '';
-            isBold = true;
         }
         
         // セルの背景色
         ctx.fillStyle = bgColor;
         ctx.fillRect(x, y, cellSize, cellSize);
         
-        // テキスト
+        // テキスト（シンプル版）
         if (text && text.trim()) {
             ctx.fillStyle = textColor;
-            ctx.font = isBold ? 'bold 14px sans-serif' : '12px sans-serif';
+            ctx.font = 'bold 14px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
+            // テキストを切り詰め（長すぎる場合）
             const maxWidth = cellSize - 10;
-            const lines = wrapText(ctx, text.trim(), maxWidth);
-            const lineHeight = 18;
-            const totalHeight = lines.length * lineHeight;
-            const startY = y + (cellSize - totalHeight) / 2 + lineHeight / 2;
+            let displayText = text;
             
-            lines.forEach((line, i) => {
-                ctx.fillText(line, x + cellSize / 2, startY + i * lineHeight);
-            });
+            // 文字数制限（日本語は全角、英語は半角で判定）
+            if (ctx.measureText(displayText).width > maxWidth) {
+                while (ctx.measureText(displayText + '...').width > maxWidth && displayText.length > 0) {
+                    displayText = displayText.slice(0, -1);
+                }
+                displayText += '...';
+            }
+            
+            ctx.fillText(displayText, x + cellSize / 2, y + cellSize / 2);
         }
     });
     
@@ -201,16 +200,18 @@ function generateThumbnail(mandalart) {
     ctx.strokeStyle = '#E0E0E0';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 3; i++) {
-        const x = gap + i * (cellSize + gap) - gap / 2;
+        const pos = gap + i * (cellSize + gap) - gap / 2;
+        
+        // 縦線
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvasSize);
+        ctx.moveTo(pos, 0);
+        ctx.lineTo(pos, canvasSize);
         ctx.stroke();
         
-        const y = gap + i * (cellSize + gap) - gap / 2;
+        // 横線
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvasSize, y);
+        ctx.moveTo(0, pos);
+        ctx.lineTo(canvasSize, pos);
         ctx.stroke();
     }
     
@@ -220,32 +221,6 @@ function generateThumbnail(mandalart) {
     ctx.strokeRect(1.5, 1.5, canvasSize - 3, canvasSize - 3);
     
     return canvas.outerHTML;
-}
-
-// テキストを折り返す関数
-function wrapText(ctx, text, maxWidth) {
-    const words = text.split('');
-    const lines = [];
-    let currentLine = '';
-    
-    for (let i = 0; i < words.length; i++) {
-        const testLine = currentLine + words[i];
-        const metrics = ctx.measureText(testLine);
-        
-        if (metrics.width > maxWidth && currentLine !== '') {
-            lines.push(currentLine);
-            currentLine = words[i];
-        } else {
-            currentLine = testLine;
-        }
-    }
-    
-    if (currentLine) {
-        lines.push(currentLine);
-    }
-    
-    // 最大3行まで
-    return lines.slice(0, 3);
 }
 
 // ========================================
