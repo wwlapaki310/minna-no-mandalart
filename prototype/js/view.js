@@ -20,6 +20,7 @@ async function loadMandalart() {
     
     let data;
     let userName = '匿名さん';  // デフォルト値
+    let ogImageUrl = '';  // OG画像URL
     
     if (mandalartId) {
         // SupabaseからデータをID取得
@@ -37,7 +38,14 @@ async function loadMandalart() {
             // ユーザー名を取得
             userName = mandalart.user_display_name || '匿名さん';
             
+            // OG画像URLを取得
+            ogImageUrl = mandalart.og_image_url || '';
+            
             console.log('データ取得成功:', data);
+            console.log('OG画像URL:', ogImageUrl);
+            
+            // OGPメタタグを更新
+            updateOGPMetaTags(data.center, userName, ogImageUrl);
         } catch (error) {
             console.error('データ取得エラー:', error);
             alert('マンダラートの読み込みに失敗しました');
@@ -73,8 +81,38 @@ async function loadMandalart() {
         generateMandalartImage(data);
     }
     
-    // グローバルに保存（画像ダウンロード用）
+    // グローバルに保存（画像ダウンロード・Twitter投稿用）
     window.currentMandalartData = data;
+    window.currentOGImageUrl = ogImageUrl;
+}
+
+// ========================================
+// OGPメタタグ更新
+// ========================================
+
+function updateOGPMetaTags(title, userName, ogImageUrl) {
+    const currentUrl = window.location.href;
+    const description = `${userName}さんの目標「${title}」- みんなのマンダラートで作成`;
+    
+    // OGPタグ更新
+    document.getElementById('og-title').setAttribute('content', `${title} - みんなのマンダラート`);
+    document.getElementById('og-description').setAttribute('content', description);
+    document.getElementById('og-url').setAttribute('content', currentUrl);
+    
+    if (ogImageUrl) {
+        document.getElementById('og-image').setAttribute('content', ogImageUrl);
+    }
+    
+    // Twitter Cardタグ更新
+    document.getElementById('twitter-title').setAttribute('content', `${title} - みんなのマンダラート`);
+    document.getElementById('twitter-description').setAttribute('content', description);
+    
+    if (ogImageUrl) {
+        document.getElementById('twitter-image').setAttribute('content', ogImageUrl);
+    }
+    
+    // HTMLタイトルも更新
+    document.title = `${title} - みんなのマンダラート`;
 }
 
 // ========================================
@@ -301,6 +339,24 @@ export function shareMandalart() {
             .then(() => alert('URLをクリップボードにコピーしました！'))
             .catch(() => alert('URLのコピーに失敗しました'));
     }
+}
+
+// ========================================
+// Twitter投稿機能
+// ========================================
+
+export function shareToTwitter() {
+    const title = document.getElementById('mandalart-title').textContent;
+    const url = window.location.href;
+    
+    // ツイート本文を作成
+    const text = `私の目標「${title}」を立てました！\n\n#みんなのマンダラート`;
+    
+    // Twitter Web Intent URL
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    
+    // 新しいウィンドウでTwitterを開く
+    window.open(twitterUrl, '_blank', 'width=550,height=420');
 }
 
 // ========================================
