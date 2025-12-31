@@ -63,6 +63,9 @@
                 <button class="btn btn-secondary" id="download-btn">
                     📸 画像保存
                 </button>
+                <button class="btn btn-twitter" id="twitter-btn">
+                    🐦 Xに投稿
+                </button>
             </div>
         </div>
     </main>
@@ -74,15 +77,17 @@
     </footer>
 
     <script type="module">
-        import { shareMandalart, downloadImage } from './js/view.js';
+        import { shareMandalart, downloadImage, shareToTwitter } from './js/view.js';
         
         // グローバル関数として公開
         window.shareMandalart = shareMandalart;
         window.downloadImage = downloadImage;
+        window.shareToTwitter = shareToTwitter;
         
         // ボタンにイベントリスナーを追加
         document.getElementById('share-btn').addEventListener('click', shareMandalart);
         document.getElementById('download-btn').addEventListener('click', downloadImage);
+        document.getElementById('twitter-btn').addEventListener('click', shareToTwitter);
     </script>
 </body>
 </html>
