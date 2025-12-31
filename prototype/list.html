@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マンダラート一覧 - みんなのマンダラート</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/list.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <span class="logo-icon">🎍</span>
+                みんなのマンダラート
+            </h1>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">ホーム</a>
+                <a href="list.html" class="nav-link active">一覧</a>
+                <a href="create.html" class="nav-link">作成</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h2 class="page-title">みんなのマンダラート</h2>
+                <p class="page-description">
+                    公開されたマンダラートを見てみよう
+                </p>
+            </div>
+
+            <!-- ローディング -->
+            <div id="loading" class="loading">
+                <p>読み込み中...</p>
+            </div>
+
+            <!-- マンダラート一覧 -->
+            <div id="mandalart-grid" class="mandalart-grid">
+                <!-- JavaScriptで動的生成 -->
+            </div>
+
+            <!-- エラーメッセージ -->
+            <div id="error-message" class="error-message" style="display: none;">
+                <p>マンダラートの読み込みに失敗しました</p>
+            </div>
+
+            <!-- もっと見るボタン -->
+            <div class="load-more-container" id="load-more-container" style="display: none;">
+                <button class="btn btn-secondary" id="load-more-btn">もっと見る</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 みんなのマンダラート</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/list.js"></script>
+</body>
+</html>
