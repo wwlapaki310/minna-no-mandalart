@@ -80,10 +80,46 @@
 .help-text ul {
     margin-top: var(--spacing-sm);
     padding-left: var(--spacing-lg);
+    list-style: none;
 }
 
 .help-text li {
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+    position: relative;
+}
+
+.help-text li strong {
+    color: var(--color-text);
+}
+
+.help-note {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* バッジスタイル */
+.badge-required,
+.badge-optional {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: var(--spacing-xs);
+}
+
+.badge-required {
+    background: var(--color-red);
+    color: var(--color-white);
+}
+
+.badge-optional {
+    background: var(--color-gold);
+    color: var(--color-text);
 }
 
 .action-buttons {
