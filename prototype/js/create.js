@@ -500,6 +500,10 @@ async function completeMandalart() {
         return;
     }
     
+    // ユーザー名を取得（未入力の場合は「匿名さん」）
+    const userNameInput = document.getElementById('user-name-input');
+    const userName = userNameInput.value.trim() || '匿名さん';
+    
     // ローカルストレージに保存
     saveToStorage();
     
@@ -509,7 +513,8 @@ async function completeMandalart() {
         const savedMandalart = await createMandalart({
             center: mandalartData.center,
             themes: mandalartData.themes,
-            isPublic: true
+            isPublic: true,
+            userDisplayName: userName
         });
         
         console.log('保存成功:', savedMandalart);
