@@ -279,7 +279,7 @@ function generateMandalartImage(data) {
 // シェア機能
 // ========================================
 
-function shareMandalart() {
+export function shareMandalart() {
     const shareData = {
         title: 'みんなのマンダラート',
         text: document.getElementById('mandalart-title').textContent,
@@ -302,7 +302,7 @@ function shareMandalart() {
 // 画像保存機能（Canvas API直接描画）
 // ========================================
 
-async function downloadImage() {
+export async function downloadImage() {
     try {
         // グローバルに保存されたデータを使用
         const data = window.currentMandalartData;
