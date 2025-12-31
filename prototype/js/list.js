@@ -130,7 +130,6 @@ function generateThumbnail(mandalart) {
     const canvas = document.createElement('canvas');
     canvas.width = canvasSize;
     canvas.height = canvasSize;
-    canvas.className = 'thumbnail-canvas';
     const ctx = canvas.getContext('2d');
     
     // 背景色（白）
@@ -220,7 +219,9 @@ function generateThumbnail(mandalart) {
     ctx.lineWidth = 3;
     ctx.strokeRect(1.5, 1.5, canvasSize - 3, canvasSize - 3);
     
-    return canvas.outerHTML;
+    // CanvasをBase64画像に変換してimg要素を返す
+    const dataUrl = canvas.toDataURL('image/png');
+    return `<img src="${dataUrl}" class="thumbnail-canvas" alt="マンダラートサムネイル">`;
 }
 
 // ========================================
