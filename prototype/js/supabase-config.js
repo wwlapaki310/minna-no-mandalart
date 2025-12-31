@@ -7,7 +7,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 // プロジェクト設定
 const SUPABASE_URL = 'https://qlymljocweviulwjwjou.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFseW1sam9jd2V2aXVsd2p3am91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU0NDQxMDksImV4cCI6MjA1MTAyMDEwOX0.sb_publishable_HDdY-y9niRHFEvC-PH3bXA_o0A3BR3V';
+const SUPABASE_ANON_KEY = 'sb_publishable_HDdY-y9niRHFEvC-PH3bXA_o0A3BR3V';
 
 // Supabaseクライアント作成
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -115,7 +115,6 @@ export async function getPublicMandalarts(limit = 20, offset = 0) {
     const { data, error } = await supabase
         .from('mandalarts')
         .select('*')
-        .eq('is_public', true)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
     
