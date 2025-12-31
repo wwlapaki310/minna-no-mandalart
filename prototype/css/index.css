@@ -148,6 +148,146 @@
 }
 
 /* ========================================
+   使い方セクション
+   ======================================== */
+
+.how-to-use {
+    padding: var(--spacing-2xl) 0;
+    background: var(--color-white);
+}
+
+.usage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+}
+
+.usage-card {
+    background: var(--color-bg);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    position: relative;
+    border: 2px solid var(--color-border);
+    transition: all 0.3s ease;
+}
+
+.usage-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--color-shadow);
+    border-color: var(--color-red);
+}
+
+.usage-number {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--color-red), var(--color-red-light));
+    color: var(--color-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.usage-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-pine);
+    margin-bottom: var(--spacing-sm);
+}
+
+.usage-description {
+    color: var(--color-text-light);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+}
+
+.badge {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-required {
+    background: var(--color-red);
+    color: var(--color-white);
+}
+
+.badge-optional {
+    background: var(--color-gold);
+    color: var(--color-text);
+}
+
+.usage-note {
+    background: linear-gradient(135deg, #FFF9F0, #FFF4E6);
+    border: 2px solid var(--color-gold);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    display: flex;
+    gap: var(--spacing-lg);
+    align-items: flex-start;
+}
+
+.note-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.note-content {
+    flex: 1;
+}
+
+.note-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--color-pine);
+    margin-bottom: var(--spacing-sm);
+}
+
+.note-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.note-list li {
+    padding-left: 1.5rem;
+    position: relative;
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text);
+    line-height: 1.6;
+}
+
+.note-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--color-red);
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .usage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .usage-note {
+        flex-direction: column;
+    }
+
+    .note-icon {
+        font-size: 2rem;
+    }
+}
+
+/* ========================================
    特徴セクション
    ======================================== */
 
