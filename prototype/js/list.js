@@ -102,6 +102,9 @@ function createMandalartCard(mandalart) {
     const date = new Date(mandalart.created_at);
     const dateStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
     
+    // ユーザー名（デフォルト：匿名さん）
+    const userName = mandalart.user_display_name || '匿名さん';
+    
     card.innerHTML = `
         <div class="card-image">
             ${thumbnail}
@@ -109,6 +112,7 @@ function createMandalartCard(mandalart) {
         <div class="card-content">
             <h3 class="card-title">${escapeHtml(mandalart.center)}</h3>
             <div class="card-meta">
+                <span class="meta-item">👤 ${escapeHtml(userName)}</span>
                 <span class="meta-item">📅 ${dateStr}</span>
                 <span class="meta-item">👁️ ${mandalart.view_count || 0}</span>
             </div>
