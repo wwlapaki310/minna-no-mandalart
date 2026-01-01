@@ -92,7 +92,7 @@ function createMandalartCard(mandalart) {
     const card = document.createElement('div');
     card.className = 'mandalart-card';
     card.onclick = () => {
-        window.location.href = `view.html?id=${mandalart.id}`;
+        window.location.href = `/api/view?id=${mandalart.id}`;
     };
     
     // サムネイル画像を生成（3x3のみ）
