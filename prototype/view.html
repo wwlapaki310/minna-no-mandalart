@@ -3,106 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マンダラート表示 - みんなのマンダラート</title>
-    
-    <!-- OGP設定（動的に更新） -->
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="みんなのマンダラート">
-    <meta property="og:title" content="マンダラート表示 - みんなのマンダラート" id="og-title">
-    <meta property="og:description" content="目標達成フレームワーク「マンダラート」で作成された目標を見てみよう" id="og-description">
-    <meta property="og:url" content="" id="og-url">
-    <meta property="og:image" content="" id="og-image">
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="マンダラート表示 - みんなのマンダラート" id="twitter-title">
-    <meta name="twitter:description" content="目標達成フレームワーク「マンダラート」で作成された目標を見てみよう" id="twitter-description">
-    <meta name="twitter:image" content="" id="twitter-image">
-    
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/view.css">
+    <title>リダイレクト中...</title>
+    <script>
+        // すぐにAPIエンドポイントにリダイレクト
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        if (id) {
+            window.location.replace('/api/view?id=' + id);
+        } else {
+            window.location.replace('/prototype/index.html');
+        }
+    </script>
 </head>
 <body>
-    <header class="header">
-        <div class="container">
-            <h1 class="logo">
-                <span class="logo-icon">🎍</span>
-                みんなのマンダラート
-            </h1>
-            <nav class="nav">
-                <a href="index.html" class="nav-link">ホーム</a>
-                <a href="list.html" class="nav-link">一覧</a>
-                <a href="create.html" class="nav-link">作成</a>
-            </nav>
-        </div>
-    </header>
-
-    <main class="main">
-        <div class="container">
-            <!-- マンダラート情報 -->
-            <div class="mandalart-header">
-                <h2 class="mandalart-title" id="mandalart-title">Loading...</h2>
-                <div class="mandalart-meta">
-                    <span class="meta-item">
-                        <span class="meta-icon">👤</span>
-                        <span id="user-name">匿名さん</span>
-                    </span>
-                    <span class="meta-item">
-                        <span class="meta-icon">📅</span>
-                        <span id="created-date">2025/01/01</span>
-                    </span>
-                </div>
-            </div>
-
-            <!-- PC版: 9x9マンダラート表示 -->
-            <div class="mandalart-container desktop-only">
-                <div class="mandalart-full" id="mandalart-display">
-                    <!-- JavaScriptで動的生成 -->
-                </div>
-            </div>
-
-            <!-- スマホ版: 9x9画像表示（ズーム可能） -->
-            <div class="mandalart-image-container mobile-only">
-                <p class="image-hint">💡 画像をピンチしてズームできます</p>
-                <img id="mandalart-image" alt="マンダラート完成図" class="mandalart-image">
-            </div>
-
-            <!-- アクションボタン -->
-            <div class="actions">
-                <button class="btn btn-secondary" onclick="window.location.href='create.html'">
-                    ✏️ 新しく作成
-                </button>
-                <button class="btn btn-primary" id="share-btn">
-                    🔗 シェア
-                </button>
-                <button class="btn btn-secondary" id="download-btn">
-                    📸 画像保存
-                </button>
-                <button class="btn btn-twitter" id="twitter-btn">
-                    🐦 Xに投稿
-                </button>
-            </div>
-        </div>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 みんなのマンダラート</p>
-        </div>
-    </footer>
-
-    <script type="module">
-        import { shareMandalart, downloadImage, shareToTwitter } from './js/view.js';
-        
-        // グローバル関数として公開
-        window.shareMandalart = shareMandalart;
-        window.downloadImage = downloadImage;
-        window.shareToTwitter = shareToTwitter;
-        
-        // ボタンにイベントリスナーを追加
-        document.getElementById('share-btn').addEventListener('click', shareMandalart);
-        document.getElementById('download-btn').addEventListener('click', downloadImage);
-        document.getElementById('twitter-btn').addEventListener('click', shareToTwitter);
-    </script>
+    <p>リダイレクト中...</p>
 </body>
 </html>
