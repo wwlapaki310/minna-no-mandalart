@@ -1,0 +1,9 @@
+{
+  "name": "minna-no-mandalart",
+  "version": "1.0.0",
+  "description": "みんなのマンダラート - 目標達成フレームワーク",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
