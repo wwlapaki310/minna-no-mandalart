@@ -87,58 +87,108 @@ export async function generateOGImage(mandalartData) {
     canvas.height = 630;
     const ctx = canvas.getContext('2d');
     
-    // 背景
-    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
-    gradient.addColorStop(0, '#FFF9F0');
-    gradient.addColorStop(1, '#FFE8CC');
-    ctx.fillStyle = gradient;
+    // 背景（白）
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, 1200, 630);
     
-    // 装飾
-    ctx.fillStyle = 'rgba(220, 20, 60, 0.05)';
-    ctx.font = 'bold 200px sans-serif';
-    ctx.fillText('🎍', 50, 200);
-    ctx.fillText('🌸', 950, 550);
+    // 3x3マスの設定
+    const cellSize = 180;
+    const gap = 4;
+    const gridSize = cellSize * 3 + gap * 4;
     
-    // タイトル
-    ctx.fillStyle = '#DC143C';
-    ctx.font = 'bold 48px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('みんなのマンダラート', 600, 80);
+    // 中央配置
+    const startX = (1200 - gridSize) / 2;
+    const startY = (630 - gridSize) / 2;
     
-    // 大目標
-    ctx.fillStyle = '#333';
-    ctx.font = 'bold 56px sans-serif';
-    const centerText = mandalartData.center || '大目標';
-    ctx.fillText(centerText, 600, 170);
-    
-    // 中目標を表示（3x3レイアウト）
-    const themes = mandalartData.themes || [];
-    const positions = [
-        [250, 280], [600, 280], [950, 280],
-        [250, 420], [600, 420], [950, 420],
-        [250, 560], [600, 560], [950, 560]
+    // 3x3レイアウト
+    const centerLayout = [
+        { themeIndex: 0, row: 0, col: 0 },
+        { themeIndex: 1, row: 0, col: 1 },
+        { themeIndex: 2, row: 0, col: 2 },
+        { themeIndex: 3, row: 1, col: 0 },
+        { themeIndex: -1, row: 1, col: 1 },  // 大目標
+        { themeIndex: 4, row: 1, col: 2 },
+        { themeIndex: 5, row: 2, col: 0 },
+        { themeIndex: 6, row: 2, col: 1 },
+        { themeIndex: 7, row: 2, col: 2 }
     ];
     
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillStyle = '#317873';
-    
-    themes.slice(0, 8).forEach((theme, i) => {
-        if (theme.title) {
-            const [x, y] = positions[i < 4 ? i : i + 1]; // 中央をスキップ
+    // 各セルを描画
+    centerLayout.forEach(({ themeIndex, row, col }) => {
+        const x = startX + gap + col * (cellSize + gap);
+        const y = startY + gap + row * (cellSize + gap);
+        
+        let bgColor, textColor, text;
+        
+        if (themeIndex === -1) {
+            // 大目標（中央）
+            bgColor = '#DC143C';
+            textColor = '#FFFFFF';
+            text = mandalartData.center || '';
+        } else {
+            // 中目標
+            bgColor = '#317873';
+            textColor = '#FFFFFF';
+            text = mandalartData.themes[themeIndex]?.title || '';
+        }
+        
+        // セルの背景色
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(x, y, cellSize, cellSize);
+        
+        // テキスト
+        if (text && text.trim()) {
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             
-            // 背景ボックス
-            const text = theme.title.length > 10 ? theme.title.slice(0, 10) + '...' : theme.title;
-            const textWidth = ctx.measureText(text).width;
+            // テキストを切り詰め（長すぎる場合）
+            const maxWidth = cellSize - 20;
+            let displayText = text;
             
-            ctx.fillStyle = 'rgba(49, 120, 115, 0.15)';
-            ctx.fillRect(x - textWidth/2 - 15, y - 35, textWidth + 30, 50);
+            if (ctx.measureText(displayText).width > maxWidth) {
+                while (ctx.measureText(displayText + '...').width > maxWidth && displayText.length > 0) {
+                    displayText = displayText.slice(0, -1);
+                }
+                displayText += '...';
+            }
             
-            // テキスト
-            ctx.fillStyle = '#317873';
-            ctx.fillText(text, x, y);
+            ctx.fillText(displayText, x + cellSize / 2, y + cellSize / 2);
         }
     });
+    
+    // グリッド線（薄いグレー）
+    ctx.strokeStyle = '#E0E0E0';
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= 3; i++) {
+        const offsetX = startX + gap + i * (cellSize + gap) - gap / 2;
+        const offsetY = startY + gap + i * (cellSize + gap) - gap / 2;
+        
+        // 縦線
+        ctx.beginPath();
+        ctx.moveTo(offsetX, startY);
+        ctx.lineTo(offsetX, startY + gridSize);
+        ctx.stroke();
+        
+        // 横線
+        ctx.beginPath();
+        ctx.moveTo(startX, offsetY);
+        ctx.lineTo(startX + gridSize, offsetY);
+        ctx.stroke();
+    }
+    
+    // 外枠（太い赤）
+    ctx.strokeStyle = '#DC143C';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(startX + 3, startY + 3, gridSize - 6, gridSize - 6);
+    
+    // 右下に「#みんなのマンダラート」
+    ctx.fillStyle = '#666666';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('#みんなのマンダラート', 1150, 600);
     
     // Blobに変換
     return new Promise((resolve) => {
