@@ -94,20 +94,20 @@ export async function generateOGImage(mandalartData) {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1200, 630);
     
-    // 装飾（透明度を下げて主張しすぎないように）
-    ctx.fillStyle = 'rgba(220, 20, 60, 0.08)';
+    // 装飾（濃く、中央寄りに配置）
+    ctx.fillStyle = 'rgba(220, 20, 60, 0.18)';
     ctx.font = 'bold 180px sans-serif';
-    ctx.fillText('🎍', 80, 180);
-    ctx.fillText('🌸', 1000, 520);
+    ctx.fillText('🎍', 150, 180);   // 左側を中央寄りに
+    ctx.fillText('🌸', 870, 520);   // 右側を中央寄りに
     
-    // 3x3マスの設定（少し小さくして上に配置）
-    const cellSize = 150;
+    // 3x3マスの設定（サイズを大きく）
+    const cellSize = 170;
     const gap = 4;
     const gridSize = cellSize * 3 + gap * 4;
     
     // 中央上寄りに配置
     const startX = (1200 - gridSize) / 2;
-    const startY = 80;
+    const startY = 60;
     
     // 3x3レイアウト
     const centerLayout = [
@@ -148,7 +148,7 @@ export async function generateOGImage(mandalartData) {
         // テキスト
         if (text && text.trim()) {
             ctx.fillStyle = textColor;
-            ctx.font = 'bold 20px sans-serif';
+            ctx.font = 'bold 22px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
@@ -192,12 +192,12 @@ export async function generateOGImage(mandalartData) {
     ctx.lineWidth = 6;
     ctx.strokeRect(startX + 3, startY + 3, gridSize - 6, gridSize - 6);
     
-    // マスの下に「#みんなのマンダラート」（中央配置、マスとの被りなし）
+    // マスの下に「#みんなのマンダラート」（中央配置）
     ctx.fillStyle = '#DC143C';
     ctx.font = 'bold 36px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText('#みんなのマンダラート', 600, startY + gridSize + 40);
+    ctx.fillText('#みんなのマンダラート', 600, startY + gridSize + 35);
     
     // Blobに変換
     return new Promise((resolve) => {
@@ -213,11 +213,15 @@ export async function generateOGImage(mandalartData) {
 export async function uploadOGImage(imageBlob, mandalartId) {
     const fileName = `${mandalartId}.png`;
     
+    // キャッシュバスティング用のタイムスタンプを追加
+    const timestamp = Date.now();
+    
     const { data, error } = await supabase.storage
         .from('og-images')
         .upload(fileName, imageBlob, {
             contentType: 'image/png',
-            upsert: true
+            upsert: true,
+            cacheControl: '3600' // 1時間キャッシュ
         });
     
     if (error) {
@@ -225,12 +229,16 @@ export async function uploadOGImage(imageBlob, mandalartId) {
         throw error;
     }
     
-    // 公開URLを取得
+    // アップロード完了を確実に待つ
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 公開URLを取得（キャッシュバスティング付き）
     const { data: { publicUrl } } = supabase.storage
         .from('og-images')
         .getPublicUrl(fileName);
     
-    return publicUrl;
+    // 初回表示のためにキャッシュバスティングパラメータを追加
+    return `${publicUrl}?t=${timestamp}`;
 }
 
 // ========================================
