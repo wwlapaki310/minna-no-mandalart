@@ -87,18 +87,27 @@ export async function generateOGImage(mandalartData) {
     canvas.height = 630;
     const ctx = canvas.getContext('2d');
     
-    // 背景（白）
-    ctx.fillStyle = '#FFFFFF';
+    // 背景グラデーション
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+    gradient.addColorStop(0, '#FFF9F0');
+    gradient.addColorStop(1, '#FFE8CC');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1200, 630);
     
-    // 3x3マスの設定
-    const cellSize = 180;
+    // 装飾（透明度を下げて主張しすぎないように）
+    ctx.fillStyle = 'rgba(220, 20, 60, 0.08)';
+    ctx.font = 'bold 180px sans-serif';
+    ctx.fillText('🎍', 80, 180);
+    ctx.fillText('🌸', 1000, 520);
+    
+    // 3x3マスの設定（少し小さくして上に配置）
+    const cellSize = 150;
     const gap = 4;
     const gridSize = cellSize * 3 + gap * 4;
     
-    // 中央配置
+    // 中央上寄りに配置
     const startX = (1200 - gridSize) / 2;
-    const startY = (630 - gridSize) / 2;
+    const startY = 80;
     
     // 3x3レイアウト
     const centerLayout = [
@@ -139,7 +148,7 @@ export async function generateOGImage(mandalartData) {
         // テキスト
         if (text && text.trim()) {
             ctx.fillStyle = textColor;
-            ctx.font = 'bold 24px sans-serif';
+            ctx.font = 'bold 20px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
@@ -183,12 +192,12 @@ export async function generateOGImage(mandalartData) {
     ctx.lineWidth = 6;
     ctx.strokeRect(startX + 3, startY + 3, gridSize - 6, gridSize - 6);
     
-    // 右下に「#みんなのマンダラート」
-    ctx.fillStyle = '#666666';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText('#みんなのマンダラート', 1150, 600);
+    // マスの下に「#みんなのマンダラート」（中央配置、マスとの被りなし）
+    ctx.fillStyle = '#DC143C';
+    ctx.font = 'bold 36px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('#みんなのマンダラート', 600, startY + gridSize + 40);
     
     // Blobに変換
     return new Promise((resolve) => {
