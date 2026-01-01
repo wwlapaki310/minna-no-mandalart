@@ -510,9 +510,9 @@ async function completeMandalart() {
         
         console.log('保存成功:', savedMandalart);
         
-        // URLパラメータでIDを渡してview.htmlに移動
+        // URLを /api/view に変更（OGPメタタグ埋め込み済み）
         if (confirm('マンダラートが完成しました!\n表示ページに移動しますか？')) {
-            window.location.href = `view.html?id=${savedMandalart.id}`;
+            window.location.href = `/api/view?id=${savedMandalart.id}`;
         }
     } catch (error) {
         console.error('保存エラー:', error);
