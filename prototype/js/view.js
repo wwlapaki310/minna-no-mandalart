@@ -350,10 +350,10 @@ export function shareToTwitter() {
     const url = window.location.href;
     
     // ツイート本文を作成
-    const text = `私の目標「${title}」を立てました！\n\n#みんなのマンダラート`;
+    const text = `私の目標は「${title}」です！\n #みんなのマンダラート ${url}`;
     
-    // Twitter Web Intent URL
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    // Twitter Web Intent URL（URLはテキストに含まれているのでurlパラメータは不要）
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     
     // 新しいウィンドウでTwitterを開く
     window.open(twitterUrl, '_blank', 'width=550,height=420');
