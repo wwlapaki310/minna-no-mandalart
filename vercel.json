@@ -1,8 +1,9 @@
 {
-  "rewrites": [
+  "redirects": [
     {
-      "source": "/prototype/view.html(.*)",
-      "destination": "/api/view$1"
+      "source": "/prototype/view.html",
+      "destination": "/api/view",
+      "permanent": true
     }
   ],
   "headers": [
