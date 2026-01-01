@@ -79,35 +79,35 @@ export function onAuthStateChange(callback) {
 // ========================================
 
 /**
- * OG画像を生成（800x800px、正方形）
+ * OG画像を生成（1200x630px、Twitter推奨サイズ）
  */
 export async function generateOGImage(mandalartData) {
     const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 800;
+    canvas.width = 1200;
+    canvas.height = 630;
     const ctx = canvas.getContext('2d');
     
     // 背景グラデーション
-    const gradient = ctx.createLinearGradient(0, 0, 800, 800);
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
     gradient.addColorStop(0, '#FFF9F0');
     gradient.addColorStop(1, '#FFE8CC');
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 800, 800);
+    ctx.fillRect(0, 0, 1200, 630);
     
-    // 装飾（濃く、4隅に配置）
+    // 装飾（濃く、中央寄りに配置）
     ctx.fillStyle = 'rgba(220, 20, 60, 0.18)';
-    ctx.font = 'bold 140px sans-serif';
-    ctx.fillText('🎍', 50, 140);      // 左上
-    ctx.fillText('🌸', 620, 750);     // 右下
+    ctx.font = 'bold 150px sans-serif';
+    ctx.fillText('🎍', 100, 150);    // 左
+    ctx.fillText('🌸', 950, 550);    // 右
     
-    // 3x3マスの設定
-    const cellSize = 200;
+    // 3x3マスの設定（大きく配置して横の余白を削減）
+    const cellSize = 180;
     const gap = 5;
     const gridSize = cellSize * 3 + gap * 4;
     
-    // 中央配置
-    const startX = (800 - gridSize) / 2;
-    const startY = (800 - gridSize) / 2;
+    // 中央に配置
+    const startX = (1200 - gridSize) / 2;
+    const startY = (630 - gridSize) / 2;
     
     // 3x3レイアウト
     const centerLayout = [
@@ -148,7 +148,7 @@ export async function generateOGImage(mandalartData) {
         // テキスト
         if (text && text.trim()) {
             ctx.fillStyle = textColor;
-            ctx.font = 'bold 26px sans-serif';
+            ctx.font = 'bold 24px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
@@ -192,12 +192,12 @@ export async function generateOGImage(mandalartData) {
     ctx.lineWidth = 6;
     ctx.strokeRect(startX + 3, startY + 3, gridSize - 6, gridSize - 6);
     
-    // 下部中央に「#みんなのマンダラート」
+    // 右下に「#みんなのマンダラート」（マスの外、右下角）
     ctx.fillStyle = '#DC143C';
-    ctx.font = 'bold 32px sans-serif';
-    ctx.textAlign = 'center';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
-    ctx.fillText('#みんなのマンダラート', 400, 770);
+    ctx.fillText('#みんなのマンダラート', 1150, 610);
     
     // Blobに変換
     return new Promise((resolve) => {
