@@ -1,6 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import fs from 'fs';
-import path from 'path';
 
 export default async function handler(req, res) {
   try {
@@ -28,58 +26,121 @@ export default async function handler(req, res) {
       return res.status(404).send('Mandalart not found');
     }
     
-    // 元のview.htmlを読み込む
-    const htmlPath = path.join(process.cwd(), 'prototype', 'view.html');
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    
-    // OGPメタタグを置き換え
+    // OGPメタタグ用のデータ
     const title = `${data.center} - みんなのマンダラート`;
     const description = `${data.user_display_name || '匿名さん'}さんの目標「${data.center}」- みんなのマンダラートで作成`;
     const url = `https://${req.headers.host}/prototype/view.html?id=${id}`;
     const ogImage = data.og_image_url || '';
     
-    // タイトル更新
-    html = html.replace(
-      /<title>.*?<\/title>/,
-      `<title>${title}</title>`
-    );
+    // HTMLテンプレート（view.htmlをベースに、OGPメタタグを埋め込む）
+    const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
     
-    // OGPメタタグ更新
-    html = html.replace(
-      /<meta property="og:title" content=".*?" id="og-title">/,
-      `<meta property="og:title" content="${title}" id="og-title">`
-    );
+    <!-- OGP設定 -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="みんなのマンダラート">
+    <meta property="og:title" content="${title}" id="og-title">
+    <meta property="og:description" content="${description}" id="og-description">
+    <meta property="og:url" content="${url}" id="og-url">
+    <meta property="og:image" content="${ogImage}" id="og-image">
     
-    html = html.replace(
-      /<meta property="og:description" content=".*?" id="og-description">/,
-      `<meta property="og:description" content="${description}" id="og-description">`
-    );
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${title}" id="twitter-title">
+    <meta name="twitter:description" content="${description}" id="twitter-description">
+    <meta name="twitter:image" content="${ogImage}" id="twitter-image">
     
-    html = html.replace(
-      /<meta property="og:url" content=".*?" id="og-url">/,
-      `<meta property="og:url" content="${url}" id="og-url">`
-    );
-    
-    html = html.replace(
-      /<meta property="og:image" content=".*?" id="og-image">/,
-      `<meta property="og:image" content="${ogImage}" id="og-image">`
-    );
-    
-    // Twitter Cardメタタグ更新
-    html = html.replace(
-      /<meta name="twitter:title" content=".*?" id="twitter-title">/,
-      `<meta name="twitter:title" content="${title}" id="twitter-title">`
-    );
-    
-    html = html.replace(
-      /<meta name="twitter:description" content=".*?" id="twitter-description">/,
-      `<meta name="twitter:description" content="${description}" id="twitter-description">`
-    );
-    
-    html = html.replace(
-      /<meta name="twitter:image" content=".*?" id="twitter-image">/,
-      `<meta name="twitter:image" content="${ogImage}" id="twitter-image">`
-    );
+    <link rel="stylesheet" href="/prototype/css/style.css">
+    <link rel="stylesheet" href="/prototype/css/view.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <span class="logo-icon">🎍</span>
+                みんなのマンダラート
+            </h1>
+            <nav class="nav">
+                <a href="/prototype/index.html" class="nav-link">ホーム</a>
+                <a href="/prototype/list.html" class="nav-link">一覧</a>
+                <a href="/prototype/create.html" class="nav-link">作成</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- マンダラート情報 -->
+            <div class="mandalart-header">
+                <h2 class="mandalart-title" id="mandalart-title">Loading...</h2>
+                <div class="mandalart-meta">
+                    <span class="meta-item">
+                        <span class="meta-icon">👤</span>
+                        <span id="user-name">匿名さん</span>
+                    </span>
+                    <span class="meta-item">
+                        <span class="meta-icon">📅</span>
+                        <span id="created-date">2025/01/01</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- PC版: 9x9マンダラート表示 -->
+            <div class="mandalart-container desktop-only">
+                <div class="mandalart-full" id="mandalart-display">
+                    <!-- JavaScriptで動的生成 -->
+                </div>
+            </div>
+
+            <!-- スマホ版: 9x9画像表示（ズーム可能） -->
+            <div class="mandalart-image-container mobile-only">
+                <p class="image-hint">💡 画像をピンチしてズームできます</p>
+                <img id="mandalart-image" alt="マンダラート完成図" class="mandalart-image">
+            </div>
+
+            <!-- アクションボタン -->
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="window.location.href='/prototype/create.html'">
+                    ✏️ 新しく作成
+                </button>
+                <button class="btn btn-primary" id="share-btn">
+                    🔗 シェア
+                </button>
+                <button class="btn btn-secondary" id="download-btn">
+                    📸 画像保存
+                </button>
+                <button class="btn btn-twitter" id="twitter-btn">
+                    🐦 Xに投稿
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 みんなのマンダラート</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { shareMandalart, downloadImage, shareToTwitter } from '/prototype/js/view.js';
+        
+        // グローバル関数として公開
+        window.shareMandalart = shareMandalart;
+        window.downloadImage = downloadImage;
+        window.shareToTwitter = shareToTwitter;
+        
+        // ボタンにイベントリスナーを追加
+        document.getElementById('share-btn').addEventListener('click', shareMandalart);
+        document.getElementById('download-btn').addEventListener('click', downloadImage);
+        document.getElementById('twitter-btn').addEventListener('click', shareToTwitter);
+    </script>
+</body>
+</html>`;
     
     // HTMLを返す
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -87,6 +148,6 @@ export default async function handler(req, res) {
     
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send('Internal Server Error: ' + error.message);
   }
 }
