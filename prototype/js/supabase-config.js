@@ -79,35 +79,35 @@ export function onAuthStateChange(callback) {
 // ========================================
 
 /**
- * OG画像を生成（1200x630px、Twitter推奨サイズ）
+ * OG画像を生成（1200x1200px、正方形）
  */
 export async function generateOGImage(mandalartData) {
     const canvas = document.createElement('canvas');
     canvas.width = 1200;
-    canvas.height = 630;
+    canvas.height = 1200;
     const ctx = canvas.getContext('2d');
     
     // 背景グラデーション
-    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 1200);
     gradient.addColorStop(0, '#FFF9F0');
     gradient.addColorStop(1, '#FFE8CC');
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1200, 630);
+    ctx.fillRect(0, 0, 1200, 1200);
     
-    // 装飾（濃く、中央寄りに配置）
+    // 装飾（濃く、4隅に配置）
     ctx.fillStyle = 'rgba(220, 20, 60, 0.18)';
-    ctx.font = 'bold 180px sans-serif';
-    ctx.fillText('🎍', 150, 180);   // 左側を中央寄りに
-    ctx.fillText('🌸', 870, 520);   // 右側を中央寄りに
+    ctx.font = 'bold 200px sans-serif';
+    ctx.fillText('🎍', 80, 200);      // 左上
+    ctx.fillText('🌸', 920, 1100);    // 右下
     
-    // 3x3マスの設定（サイズを大きく）
-    const cellSize = 170;
-    const gap = 4;
+    // 3x3マスの設定（大きく、ほぼ画面いっぱい）
+    const cellSize = 310;
+    const gap = 6;
     const gridSize = cellSize * 3 + gap * 4;
     
-    // 中央上寄りに配置
+    // 中央配置
     const startX = (1200 - gridSize) / 2;
-    const startY = 60;
+    const startY = (1200 - gridSize) / 2;
     
     // 3x3レイアウト
     const centerLayout = [
@@ -148,12 +148,12 @@ export async function generateOGImage(mandalartData) {
         // テキスト
         if (text && text.trim()) {
             ctx.fillStyle = textColor;
-            ctx.font = 'bold 22px sans-serif';
+            ctx.font = 'bold 38px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
             // テキストを切り詰め（長すぎる場合）
-            const maxWidth = cellSize - 20;
+            const maxWidth = cellSize - 30;
             let displayText = text;
             
             if (ctx.measureText(displayText).width > maxWidth) {
@@ -169,7 +169,7 @@ export async function generateOGImage(mandalartData) {
     
     // グリッド線（薄いグレー）
     ctx.strokeStyle = '#E0E0E0';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     for (let i = 0; i <= 3; i++) {
         const offsetX = startX + gap + i * (cellSize + gap) - gap / 2;
         const offsetY = startY + gap + i * (cellSize + gap) - gap / 2;
@@ -189,15 +189,15 @@ export async function generateOGImage(mandalartData) {
     
     // 外枠（太い赤）
     ctx.strokeStyle = '#DC143C';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(startX + 3, startY + 3, gridSize - 6, gridSize - 6);
+    ctx.lineWidth = 8;
+    ctx.strokeRect(startX + 4, startY + 4, gridSize - 8, gridSize - 8);
     
-    // マスの下に「#みんなのマンダラート」（中央配置）
+    // 下部中央に「#みんなのマンダラート」
     ctx.fillStyle = '#DC143C';
-    ctx.font = 'bold 36px sans-serif';
+    ctx.font = 'bold 48px sans-serif';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText('#みんなのマンダラート', 600, startY + gridSize + 35);
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('#みんなのマンダラート', 600, 1150);
     
     // Blobに変換
     return new Promise((resolve) => {
@@ -213,7 +213,7 @@ export async function generateOGImage(mandalartData) {
 export async function uploadOGImage(imageBlob, mandalartId) {
     const fileName = `${mandalartId}.png`;
     
-    // キャッシュバスティング用のタイムスタンプを追加
+    // キャッシュバスティング用のタイムスタンプ
     const timestamp = Date.now();
     
     const { data, error } = await supabase.storage
@@ -229,15 +229,11 @@ export async function uploadOGImage(imageBlob, mandalartId) {
         throw error;
     }
     
-    // アップロード完了を確実に待つ
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
     // 公開URLを取得（キャッシュバスティング付き）
     const { data: { publicUrl } } = supabase.storage
         .from('og-images')
         .getPublicUrl(fileName);
     
-    // 初回表示のためにキャッシュバスティングパラメータを追加
     return `${publicUrl}?t=${timestamp}`;
 }
 
