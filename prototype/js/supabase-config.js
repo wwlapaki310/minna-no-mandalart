@@ -79,7 +79,7 @@ export function onAuthStateChange(callback) {
 // ========================================
 
 /**
- * OG画像を生成（1200x630px、Twitter推奨サイズ）
+ * OG画像を生成（1200x630px、Twitter推奨サイズ、セーフエリア考慮）
  */
 export async function generateOGImage(mandalartData) {
     const canvas = document.createElement('canvas');
@@ -96,12 +96,12 @@ export async function generateOGImage(mandalartData) {
     
     // 装飾（濃く、中央寄りに配置）
     ctx.fillStyle = 'rgba(220, 20, 60, 0.18)';
-    ctx.font = 'bold 150px sans-serif';
-    ctx.fillText('🎍', 100, 150);    // 左
-    ctx.fillText('🌸', 950, 550);    // 右
+    ctx.font = 'bold 140px sans-serif';
+    ctx.fillText('🎍', 120, 140);    // 左
+    ctx.fillText('🌸', 940, 530);    // 右
     
-    // 3x3マスの設定（大きく配置して横の余白を削減）
-    const cellSize = 180;
+    // 3x3マスの設定（Twitterセーフエリア内に収まるサイズ）
+    const cellSize = 165;
     const gap = 5;
     const gridSize = cellSize * 3 + gap * 4;
     
@@ -148,7 +148,7 @@ export async function generateOGImage(mandalartData) {
         // テキスト
         if (text && text.trim()) {
             ctx.fillStyle = textColor;
-            ctx.font = 'bold 24px sans-serif';
+            ctx.font = 'bold 22px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
@@ -192,12 +192,21 @@ export async function generateOGImage(mandalartData) {
     ctx.lineWidth = 6;
     ctx.strokeRect(startX + 3, startY + 3, gridSize - 6, gridSize - 6);
     
-    // 右下に「#みんなのマンダラート」（マスの外、右下角）
+    // マスの右側に「#みんなのマンダラート」（縦書き風）
     ctx.fillStyle = '#DC143C';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText('#みんなのマンダラート', 1150, 610);
+    ctx.font = 'bold 26px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    
+    // 縦書きスタイルで配置
+    const hashtagX = startX + gridSize + 30;
+    const hashtagY = startY + gridSize / 2;
+    
+    ctx.save();
+    ctx.translate(hashtagX, hashtagY);
+    ctx.rotate(Math.PI / 2); // 90度回転
+    ctx.fillText('#みんなのマンダラート', 0, 0);
+    ctx.restore();
     
     // Blobに変換
     return new Promise((resolve) => {
