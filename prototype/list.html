@@ -70,11 +70,17 @@
             background-color: #B01030;
         }
 
+        /* カード */
+        .mandalart-card {
+            position: relative;
+            padding-bottom: 3rem; /* アクションボタンのスペース確保 */
+        }
+
         /* カード内のアクションエリア */
         .card-actions {
             position: absolute;
-            bottom: 0.5rem;
-            right: 0.5rem;
+            bottom: 0.75rem;
+            right: 0.75rem;
             display: flex;
             justify-content: flex-end;
             align-items: center;
@@ -87,19 +93,24 @@
             display: flex;
             align-items: center;
             gap: 0.3rem;
-            padding: 0.3rem 0.6rem;
-            background: none;
-            border: none;
+            padding: 0.4rem 0.7rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #E0E0E0;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 1rem;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .card-like-btn:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
         }
 
         .card-like-btn.liked {
+            background: rgba(220, 20, 60, 0.1);
+            border-color: #DC143C;
             color: #DC143C;
         }
 
@@ -110,22 +121,23 @@
 
         /* 削除ボタン */
         .card-delete-btn {
-            padding: 0.3rem 0.6rem;
+            padding: 0.4rem 0.7rem;
             font-size: 1.1rem;
-            background: none;
-            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #E0E0E0;
+            border-radius: 6px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
             opacity: 0.7;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .card-delete-btn:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
             opacity: 1;
-        }
-
-        .mandalart-card {
-            position: relative;
+            background: rgba(255, 0, 0, 0.05);
+            border-color: #DC143C;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
