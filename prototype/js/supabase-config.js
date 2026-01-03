@@ -415,3 +415,74 @@ export async function deleteMandalart(id) {
         throw error;
     }
 }
+
+// ========================================
+// 削除リクエスト関連
+// ========================================
+
+/**
+ * 削除リクエストを送信
+ */
+export async function submitDeleteRequest(mandalartId, reason) {
+    const { data, error } = await supabase
+        .from('delete_requests')
+        .insert({
+            mandalart_id: mandalartId,
+            reason: reason,
+            status: 'pending'
+        })
+        .select()
+        .single();
+    
+    if (error) {
+        console.error('削除リクエスト送信エラー:', error);
+        throw error;
+    }
+    
+    return data;
+}
+
+/**
+ * 削除リクエスト一覧取得（Admin用）
+ */
+export async function getDeleteRequests(status = 'pending') {
+    const { data, error } = await supabase
+        .from('delete_requests')
+        .select(`
+            *,
+            mandalarts (
+                id,
+                center,
+                user_display_name,
+                created_at
+            )
+        `)
+        .eq('status', status)
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('削除リクエスト取得エラー:', error);
+        throw error;
+    }
+    
+    return data;
+}
+
+/**
+ * 削除リクエストのステータス更新（Admin用）
+ */
+export async function updateDeleteRequestStatus(requestId, status) {
+    const { data, error } = await supabase
+        .from('delete_requests')
+        .update({ status })
+        .eq('id', requestId)
+        .select()
+        .single();
+    
+    if (error) {
+        console.error('削除リクエストステータス更新エラー:', error);
+        throw error;
+    }
+    
+    return data;
+}
