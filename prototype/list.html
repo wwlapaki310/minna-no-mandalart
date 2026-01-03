@@ -6,6 +6,94 @@
     <title>マンダラート一覧 - みんなのマンダラート</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/list.css">
+    <style>
+        /* 削除リクエストモーダル用のスタイル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #DC143C;
+        }
+        
+        .modal-body textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 0.75rem;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .modal-footer {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .btn-danger {
+            background-color: #DC143C;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #B01030;
+        }
+
+        /* カード内の削除ボタン */
+        .card-delete-btn {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            background-color: #DC143C;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.2s;
+        }
+
+        .card-delete-btn:hover {
+            background-color: #B01030;
+        }
+
+        .mandalart-card {
+            position: relative;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -52,6 +140,24 @@
             </div>
         </div>
     </main>
+
+    <!-- 削除リクエストモーダル -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>削除リクエスト</h3>
+            </div>
+            <div class="modal-body">
+                <p>このマンダラートの削除をリクエストします。管理者が確認後、削除されます。</p>
+                <label for="delete-reason">削除理由（任意）:</label>
+                <textarea id="delete-reason" placeholder="例: 不適切な内容が含まれている、個人情報が掲載されている、など"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-delete-btn">キャンセル</button>
+                <button class="btn btn-danger" id="submit-delete-btn">送信</button>
+            </div>
+        </div>
+    </div>
 
     <footer class="footer">
         <div class="container">
