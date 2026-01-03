@@ -1,5 +1,5 @@
 // Supabase設定をインポート
-import { getPublicMandalarts } from './supabase-config.js';
+import { getPublicMandalarts, submitDeleteRequest } from './supabase-config.js';
 
 // ========================================
 // グローバル変数
@@ -9,6 +9,7 @@ let currentOffset = 0;
 const ITEMS_PER_PAGE = 20;
 let isLoading = false;
 let hasMore = true;
+let currentDeleteId = null; // 削除対象のマンダラートID
 
 // ========================================
 // 初期化
@@ -19,7 +20,67 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // もっと見るボタン
     document.getElementById('load-more-btn').addEventListener('click', loadMore);
+    
+    // 削除リクエストモーダルのイベントリスナー
+    setupDeleteModal();
 });
+
+// ========================================
+// 削除リクエストモーダルのセットアップ
+// ========================================
+
+function setupDeleteModal() {
+    const modal = document.getElementById('delete-modal');
+    const cancelBtn = document.getElementById('cancel-delete-btn');
+    const submitBtn = document.getElementById('submit-delete-btn');
+    
+    cancelBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        document.getElementById('delete-reason').value = '';
+        currentDeleteId = null;
+    });
+    
+    submitBtn.addEventListener('click', async () => {
+        const reason = document.getElementById('delete-reason').value.trim() || '（理由なし）';
+        
+        if (currentDeleteId) {
+            await requestDelete(currentDeleteId, reason);
+        }
+        
+        modal.classList.remove('active');
+        document.getElementById('delete-reason').value = '';
+        currentDeleteId = null;
+    });
+    
+    // モーダル外クリックで閉じる
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            document.getElementById('delete-reason').value = '';
+            currentDeleteId = null;
+        }
+    });
+}
+
+// ========================================
+// 削除リクエスト機能
+// ========================================
+
+function openDeleteModal(mandalartId) {
+    currentDeleteId = mandalartId;
+    const modal = document.getElementById('delete-modal');
+    modal.classList.add('active');
+}
+
+async function requestDelete(mandalartId, reason) {
+    try {
+        await submitDeleteRequest(mandalartId, reason);
+        alert('削除リクエストを送信しました。\n管理者が確認後、削除されます。');
+    } catch (error) {
+        console.error('削除リクエスト送信エラー:', error);
+        alert('削除リクエストの送信に失敗しました。');
+    }
+}
 
 // ========================================
 // マンダラート一覧読み込み
@@ -91,8 +152,11 @@ function renderMandalarts(mandalarts) {
 function createMandalartCard(mandalart) {
     const card = document.createElement('div');
     card.className = 'mandalart-card';
-    card.onclick = () => {
-        window.location.href = `/api/view?id=${mandalart.id}`;
+    card.onclick = (e) => {
+        // 削除ボタンをクリックした場合は遷移しない
+        if (!e.target.classList.contains('card-delete-btn')) {
+            window.location.href = `/api/view?id=${mandalart.id}`;
+        }
     };
     
     // サムネイル画像を生成（3x3のみ）
@@ -117,10 +181,16 @@ function createMandalartCard(mandalart) {
                 <span class="meta-item">👁️ ${mandalart.view_count || 0}</span>
             </div>
         </div>
+        <button class="card-delete-btn" onclick="event.stopPropagation(); window.openDeleteModal('${mandalart.id}')">
+            🗑️ 削除リクエスト
+        </button>
     `;
     
     return card;
 }
+
+// グローバルに公開
+window.openDeleteModal = openDeleteModal;
 
 // ========================================
 // サムネイル生成（3x3の中央ブロックのみ）
