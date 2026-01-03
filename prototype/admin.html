@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理画面 - みんなのマンダラート</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-form h2 {
+            margin-bottom: 1.5rem;
+            color: #DC143C;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .requests-list {
+            margin-top: 2rem;
+        }
+
+        .request-card {
+            background: white;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .request-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .request-meta {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .request-reason {
+            background: #F5F5F5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-approve {
+            background-color: #28A745;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background-color: #218838;
+        }
+
+        .btn-reject {
+            background-color: #6C757D;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background-color: #5A6268;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background-color: #FFC107;
+            color: #000;
+        }
+
+        .badge-approved {
+            background-color: #28A745;
+            color: white;
+        }
+
+        .badge-rejected {
+            background-color: #DC3545;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #E0E0E0;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #DC143C;
+            border-bottom-color: #DC143C;
+        }
+
+        .tab:hover {
+            color: #DC143C;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        .mandalart-link {
+            color: #317873;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .mandalart-link:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #DC143C;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <span class="logo-icon">🎍</span>
+                みんなのマンダラート - 管理画面
+            </h1>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">ホーム</a>
+                <button id="logout-btn" class="btn btn-secondary" style="display:none;">ログアウト</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- ログインフォーム -->
+        <div id="login-section">
+            <div class="login-form">
+                <h2>管理者ログイン</h2>
+                <input type="password" id="admin-password" placeholder="パスワード">
+                <button class="btn btn-primary" id="login-btn">ログイン</button>
+            </div>
+        </div>
+
+        <!-- 管理画面 -->
+        <div id="admin-section" class="hidden">
+            <div class="admin-container">
+                <h2>削除リクエスト管理</h2>
+
+                <!-- 統計情報 -->
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="pending-count">0</div>
+                        <div class="stat-label">保留中</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="approved-count">0</div>
+                        <div class="stat-label">承認済み</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="rejected-count">0</div>
+                        <div class="stat-label">却下済み</div>
+                    </div>
+                </div>
+
+                <!-- タブ -->
+                <div class="tabs">
+                    <button class="tab active" data-status="pending">保留中</button>
+                    <button class="tab" data-status="approved">承認済み</button>
+                    <button class="tab" data-status="rejected">却下済み</button>
+                </div>
+
+                <!-- リクエスト一覧 -->
+                <div id="requests-list" class="requests-list">
+                    <div class="empty-state">読み込み中...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 みんなのマンダラート</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>
