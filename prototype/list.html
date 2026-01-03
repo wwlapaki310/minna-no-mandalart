@@ -75,19 +75,25 @@
             position: absolute;
             bottom: 0.5rem;
             right: 0.5rem;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.85rem;
-            background-color: #DC143C;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            font-size: 1.2rem;
+            background-color: rgba(220, 20, 60, 0.9);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 50%;
             cursor: pointer;
             z-index: 10;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .card-delete-btn:hover {
-            background-color: #B01030;
+            background-color: #DC143C;
+            transform: scale(1.1);
         }
 
         .mandalart-card {
