@@ -1,5 +1,5 @@
 // Supabase設定をインポート
-import { getMandalart } from './supabase-config.js';
+import { getMandalart, submitDeleteRequest } from './supabase-config.js';
 
 // ========================================
 // 初期化
@@ -81,8 +81,9 @@ async function loadMandalart() {
         generateMandalartImage(data);
     }
     
-    // グローバルに保存（画像ダウンロード・Twitter投稿用）
+    // グローバルに保存（画像ダウンロード・Twitter投稿・削除リクエスト用）
     window.currentMandalartData = data;
+    window.currentMandalartId = mandalartId;
     window.currentOGImageUrl = ogImageUrl;
 }
 
@@ -357,6 +358,28 @@ export function shareToTwitter() {
     
     // 新しいウィンドウでTwitterを開く
     window.open(twitterUrl, '_blank', 'width=550,height=420');
+}
+
+// ========================================
+// 削除リクエスト機能
+// ========================================
+
+export async function requestDelete(reason) {
+    try {
+        const mandalartId = window.currentMandalartId;
+        
+        if (!mandalartId) {
+            alert('マンダラートIDが見つかりません');
+            return;
+        }
+        
+        await submitDeleteRequest(mandalartId, reason);
+        
+        alert('削除リクエストを送信しました。\n管理者が確認後、削除されます。');
+    } catch (error) {
+        console.error('削除リクエスト送信エラー:', error);
+        alert('削除リクエストの送信に失敗しました。');
+    }
 }
 
 // ========================================
