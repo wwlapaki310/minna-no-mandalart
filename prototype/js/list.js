@@ -181,8 +181,8 @@ function createMandalartCard(mandalart) {
                 <span class="meta-item">👁️ ${mandalart.view_count || 0}</span>
             </div>
         </div>
-        <button class="card-delete-btn" onclick="event.stopPropagation(); window.openDeleteModal('${mandalart.id}')">
-            🗑️ 削除リクエスト
+        <button class="card-delete-btn" onclick="event.stopPropagation(); window.openDeleteModal('${mandalart.id}')" title="削除リクエスト">
+            🗑️
         </button>
     `;
     
