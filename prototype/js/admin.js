@@ -4,9 +4,6 @@ import { getDeleteRequests, updateDeleteRequestStatus, deleteMandalart } from '.
 // 設定
 // ========================================
 
-// 管理者パスワード（本番環境では環境変数などを使用推奨）
-const ADMIN_PASSWORD = 'mandalart2025';
-
 let currentStatus = 'pending';
 
 // ========================================
@@ -45,15 +42,40 @@ document.addEventListener('DOMContentLoaded', () => {
 // 認証
 // ========================================
 
-function handleLogin() {
+async function handleLogin() {
     const password = document.getElementById('admin-password').value;
+    const loginBtn = document.getElementById('login-btn');
     
-    if (password === ADMIN_PASSWORD) {
-        sessionStorage.setItem('admin_logged_in', 'true');
-        showAdminSection();
-    } else {
-        alert('パスワードが正しくありません');
-        document.getElementById('admin-password').value = '';
+    // ボタン無効化
+    loginBtn.disabled = true;
+    loginBtn.textContent = '認証中...';
+    
+    try {
+        // APIで認証
+        const response = await fetch('/api/admin-auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.authenticated) {
+            sessionStorage.setItem('admin_logged_in', 'true');
+            showAdminSection();
+        } else {
+            alert('パスワードが正しくありません');
+            document.getElementById('admin-password').value = '';
+        }
+    } catch (error) {
+        console.error('認証エラー:', error);
+        alert('認証に失敗しました。もう一度お試しください。');
+    } finally {
+        // ボタン有効化
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'ログイン';
     }
 }
 
