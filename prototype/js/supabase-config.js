@@ -486,3 +486,73 @@ export async function updateDeleteRequestStatus(requestId, status) {
     
     return data;
 }
+
+// ========================================
+// いいね機能
+// ========================================
+
+/**
+ * いいね数を+1する
+ */
+export async function incrementLikeCount(mandalartId) {
+    // 現在のいいね数を取得
+    const { data: mandalart, error: fetchError } = await supabase
+        .from('mandalarts')
+        .select('like_count')
+        .eq('id', mandalartId)
+        .single();
+    
+    if (fetchError) {
+        console.error('いいね数取得エラー:', fetchError);
+        throw fetchError;
+    }
+    
+    // いいね数を+1
+    const { data, error } = await supabase
+        .from('mandalarts')
+        .update({ like_count: (mandalart.like_count || 0) + 1 })
+        .eq('id', mandalartId)
+        .select()
+        .single();
+    
+    if (error) {
+        console.error('いいね数更新エラー:', error);
+        throw error;
+    }
+    
+    return data;
+}
+
+/**
+ * いいね数を-1する（取り消し用）
+ */
+export async function decrementLikeCount(mandalartId) {
+    // 現在のいいね数を取得
+    const { data: mandalart, error: fetchError } = await supabase
+        .from('mandalarts')
+        .select('like_count')
+        .eq('id', mandalartId)
+        .single();
+    
+    if (fetchError) {
+        console.error('いいね数取得エラー:', fetchError);
+        throw fetchError;
+    }
+    
+    // いいね数を-1（最小0）
+    const newCount = Math.max(0, (mandalart.like_count || 0) - 1);
+    
+    const { data, error } = await supabase
+        .from('mandalarts')
+        .update({ like_count: newCount })
+        .eq('id', mandalartId)
+        .select()
+        .single();
+    
+    if (error) {
+        console.error('いいね数更新エラー:', error);
+        throw error;
+    }
+    
+    return data;
+}
