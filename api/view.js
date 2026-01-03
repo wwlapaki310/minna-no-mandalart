@@ -196,7 +196,7 @@ export default async function handler(req, res) {
             </div>
             <div class="modal-body">
                 <p>このマンダラートの削除をリクエストします。管理者が確認後、削除されます。</p>
-                <label for="delete-reason">削除理由（必須）:</label>
+                <label for="delete-reason">削除理由（任意）:</label>
                 <textarea id="delete-reason" placeholder="例: 不適切な内容が含まれている、個人情報が掲載されている、など"></textarea>
             </div>
             <div class="modal-footer">
@@ -242,11 +242,7 @@ export default async function handler(req, res) {
         });
         
         submitBtn.addEventListener('click', async () => {
-            const reason = document.getElementById('delete-reason').value.trim();
-            if (!reason) {
-                alert('削除理由を入力してください');
-                return;
-            }
+            const reason = document.getElementById('delete-reason').value.trim() || '（理由なし）';
             
             await requestDelete(reason);
             modal.classList.remove('active');
