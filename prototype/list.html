@@ -70,30 +70,58 @@
             background-color: #B01030;
         }
 
-        /* カード内の削除ボタン */
-        .card-delete-btn {
+        /* カード内のアクションエリア */
+        .card-actions {
             position: absolute;
             bottom: 0.5rem;
+            left: 0.5rem;
             right: 0.5rem;
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            font-size: 1.2rem;
-            background-color: rgba(220, 20, 60, 0.9);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             z-index: 10;
-            transition: all 0.2s;
+        }
+
+        /* いいねボタン */
+        .card-like-btn {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.6rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .card-like-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .card-like-btn.liked {
+            color: #DC143C;
+        }
+
+        .card-like-count {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* 削除ボタン */
+        .card-delete-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 1.1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+            opacity: 0.7;
         }
 
         .card-delete-btn:hover {
-            background-color: #DC143C;
             transform: scale(1.1);
+            opacity: 1;
         }
 
         .mandalart-card {
