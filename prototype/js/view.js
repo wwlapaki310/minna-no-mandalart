@@ -1,544 +1,138 @@
-// Supabase設定をインポート
-import { getMandalart, submitDeleteRequest } from './supabase-config.js';
-
-// ========================================
-// 初期化
-// ========================================
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadMandalart();
-});
-
-// ========================================
-// マンダラート読み込み
-// ========================================
-
-async function loadMandalart() {
-    // URLパラメータからIDを取得
-    const urlParams = new URLSearchParams(window.location.search);
-    const mandalartId = urlParams.get('id');
-    
-    let data;
-    let userName = '匿名さん';  // デフォルト値
-    let ogImageUrl = '';  // OG画像URL
-    
-    if (mandalartId) {
-        // SupabaseからデータをID取得
-        try {
-            console.log('Supabaseからデータ取得中...', mandalartId);
-            const mandalart = await getMandalart(mandalartId);
-            
-            // Supabaseのデータ形式から変換
-            data = {
-                center: mandalart.center,
-                themes: mandalart.themes,
-                createdAt: mandalart.created_at
-            };
-            
-            // ユーザー名を取得
-            userName = mandalart.user_display_name || '匿名さん';
-            
-            // OG画像URLを取得
-            ogImageUrl = mandalart.og_image_url || '';
-            
-            console.log('データ取得成功:', data);
-            console.log('OG画像URL:', ogImageUrl);
-            
-            // OGPメタタグを更新
-            updateOGPMetaTags(data.center, userName, ogImageUrl);
-        } catch (error) {
-            console.error('データ取得エラー:', error);
-            alert('マンダラートの読み込みに失敗しました');
-            window.location.href = 'index.html';
-            return;
-        }
-    } else {
-        // フォールバック: ローカルストレージからデータを取得（後方互換性）
-        const savedData = localStorage.getItem('current-mandalart');
-        
-        if (!savedData) {
-            alert('マンダラートが見つかりません');
-            window.location.href = 'create.html';
-            return;
-        }
-        
-        data = JSON.parse(savedData);
-    }
-    
-    // メタ情報を表示
-    document.getElementById('mandalart-title').textContent = data.center;
-    document.getElementById('user-name').textContent = userName;
-    
-    const createdDate = new Date(data.createdAt);
-    document.getElementById('created-date').textContent = 
-        `${createdDate.getFullYear()}/${String(createdDate.getMonth() + 1).padStart(2, '0')}/${String(createdDate.getDate()).padStart(2, '0')}`;
-    
-    // 9x9マンダラートを表示
-    displayFullMandalart(data);
-    
-    // スマホ版では画像も生成
-    if (window.innerWidth < 768) {
-        generateMandalartImage(data);
-    }
-    
-    // グローバルに保存（画像ダウンロード・Twitter投稿・削除リクエスト用）
-    window.currentMandalartData = data;
-    window.currentMandalartId = mandalartId;
-    window.currentOGImageUrl = ogImageUrl;
-}
-
-// ========================================
-// OGPメタタグ更新
-// ========================================
-
-function updateOGPMetaTags(title, userName, ogImageUrl) {
-    const currentUrl = window.location.href;
-    const description = `${userName}さんの目標「${title}」- みんなのマンダラートで作成`;
-    
-    // OGPタグ更新
-    document.getElementById('og-title').setAttribute('content', `${title} - みんなのマンダラート`);
-    document.getElementById('og-description').setAttribute('content', description);
-    document.getElementById('og-url').setAttribute('content', currentUrl);
-    
-    if (ogImageUrl) {
-        document.getElementById('og-image').setAttribute('content', ogImageUrl);
-    }
-    
-    // Twitter Cardタグ更新
-    document.getElementById('twitter-title').setAttribute('content', `${title} - みんなのマンダラート`);
-    document.getElementById('twitter-description').setAttribute('content', description);
-    
-    if (ogImageUrl) {
-        document.getElementById('twitter-image').setAttribute('content', ogImageUrl);
-    }
-    
-    // HTMLタイトルも更新
-    document.title = `${title} - みんなのマンダラート`;
-}
-
-// ========================================
-// 9x9マンダラート表示
-// ========================================
-
-function displayFullMandalart(data) {
-    const container = document.getElementById('mandalart-display');
-    container.innerHTML = '';
-
-    // 9x9 = 81セルを正しく生成
-    for (let i = 0; i < 81; i++) {
-        const cellData = getCellData(data, i);
-        const cell = document.createElement('div');
-        cell.className = 'mandalart-cell';
-        cell.style.setProperty('--cell-index', i);
-        
-        // セルのタイプに応じてクラスを追加
-        if (cellData.type === 'center') {
-            cell.classList.add('center');
-        } else if (cellData.type === 'sub-theme') {
-            cell.classList.add('sub-theme');
-        } else if (cellData.type === 'detail') {
-            cell.classList.add('detail');
-        }
-        
-        cell.textContent = cellData.content;
-        container.appendChild(cell);
-    }
-}
-
-// ========================================
-// セルデータ取得（create.jsと同じロジック）
-// ========================================
-
-function getCellData(data, index) {
-    // 位置情報を計算
-    const blockRow = Math.floor(index / 27);
-    const blockCol = Math.floor((index % 9) / 3);
-    const innerRow = Math.floor((index % 27) / 9);
-    const innerCol = (index % 9) % 3;
-    
-    // セルの種類を判定
-    const isCenterBlock = (blockRow === 1 && blockCol === 1);
-    const isCenterCell = (innerRow === 1 && innerCol === 1);
-    
-    if (isCenterBlock && isCenterCell) {
-        // 大目標
-        return {
-            type: 'center',
-            content: data.center
-        };
-    } else if (isCenterBlock) {
-        // 中目標（中央ブロック）
-        const themeIndex = getThemeIndexFromInner(innerRow, innerCol);
-        return {
-            type: 'sub-theme',
-            content: data.themes[themeIndex]?.title || ''
-        };
-    } else if (isCenterCell) {
-        // 中目標（周辺ブロックの中心）
-        const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
-        return {
-            type: 'sub-theme',
-            content: data.themes[themeIndex]?.title || ''
-        };
-    } else {
-        // 個別目標
-        const themeIndex = getThemeIndexFromBlock(blockRow, blockCol);
-        const detailIndex = getDetailIndexFromInner(innerRow, innerCol);
-        return {
-            type: 'detail',
-            content: data.themes[themeIndex]?.details[detailIndex] || ''
-        };
-    }
-}
-
-function getThemeIndexFromInner(innerRow, innerCol) {
-    const positions = [
-        [0, 1, 2],
-        [3, -1, 4],
-        [5, 6, 7]
-    ];
-    return positions[innerRow][innerCol];
-}
-
-function getThemeIndexFromBlock(blockRow, blockCol) {
-    const positions = [
-        [0, 1, 2],
-        [3, -1, 4],
-        [5, 6, 7]
-    ];
-    return positions[blockRow][blockCol];
-}
-
-function getDetailIndexFromInner(innerRow, innerCol) {
-    const positions = [
-        [0, 1, 2],
-        [3, -1, 4],
-        [5, 6, 7]
-    ];
-    return positions[innerRow][innerCol];
-}
-
-// ========================================
-// モバイル用: 画像生成
-// ========================================
-
-function generateMandalartImage(data) {
-    const cellSize = 100;
-    const gap = 2;
-    const canvasSize = cellSize * 9 + gap * 10;
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = canvasSize;
-    canvas.height = canvasSize;
-    const ctx = canvas.getContext('2d');
-    
-    // 背景色（白）
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvasSize, canvasSize);
-    
-    // 各セルを描画
-    for (let i = 0; i < 81; i++) {
-        const cellData = getCellData(data, i);
-        const row = Math.floor(i / 9);
-        const col = i % 9;
-        const x = gap + col * (cellSize + gap);
-        const y = gap + row * (cellSize + gap);
-        
-        // セルの背景色
-        if (cellData.type === 'center') {
-            ctx.fillStyle = '#DC143C';
-            ctx.fillRect(x, y, cellSize, cellSize);
-        } else if (cellData.type === 'sub-theme') {
-            ctx.fillStyle = '#317873';
-            ctx.fillRect(x, y, cellSize, cellSize);
-        }
-        
-        // テキスト
-        const text = cellData.content.trim();
-        if (text) {
-            if (cellData.type === 'center' || cellData.type === 'sub-theme') {
-                ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 14px sans-serif';
-            } else {
-                ctx.fillStyle = '#333333';
-                ctx.font = '12px sans-serif';
-            }
-            
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            const maxWidth = cellSize - 10;
-            const lines = wrapText(ctx, text, maxWidth);
-            const lineHeight = 18;
-            const totalHeight = lines.length * lineHeight;
-            const startY = y + (cellSize - totalHeight) / 2 + lineHeight / 2;
-            
-            lines.forEach((line, i) => {
-                ctx.fillText(line, x + cellSize / 2, startY + i * lineHeight);
-            });
-        }
-    }
-    
-    // グリッド線（薄いグレー）
-    ctx.strokeStyle = '#E0E0E0';
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 9; i++) {
-        const x = gap + i * (cellSize + gap) - gap / 2;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvasSize);
-        ctx.stroke();
-        
-        const y = gap + i * (cellSize + gap) - gap / 2;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvasSize, y);
-        ctx.stroke();
-    }
-    
-    // 3x3ブロックの境界線（太い赤）
-    ctx.strokeStyle = '#DC143C';
-    ctx.lineWidth = 3;
-    
-    for (let i = 0; i <= 3; i++) {
-        const x = gap + i * 3 * (cellSize + gap) - gap / 2;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvasSize);
-        ctx.stroke();
-        
-        const y = gap + i * 3 * (cellSize + gap) - gap / 2;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvasSize, y);
-        ctx.stroke();
-    }
-    
-    // 画像をimgタグに設定
-    const img = document.getElementById('mandalart-image');
-    img.src = canvas.toDataURL('image/png');
-}
-
-// ========================================
-// シェア機能
-// ========================================
-
-export function shareMandalart() {
-    const shareData = {
-        title: 'みんなのマンダラート',
-        text: document.getElementById('mandalart-title').textContent,
-        url: window.location.href
-    };
-
-    if (navigator.share) {
-        navigator.share(shareData)
-            .then(() => console.log('共有成功'))
-            .catch((error) => console.log('共有エラー:', error));
-    } else {
-        // Web Share API非対応の場合はURLをコピー
-        navigator.clipboard.writeText(window.location.href)
-            .then(() => alert('URLをクリップボードにコピーしました！'))
-            .catch(() => alert('URLのコピーに失敗しました'));
-    }
-}
-
-// ========================================
-// Twitter投稿機能
-// ========================================
-
-export function shareToTwitter() {
-    const title = document.getElementById('mandalart-title').textContent;
-    const url = window.location.href;
-    
-    // ツイート本文を作成
-    const text = `私の目標は「${title}」です！\n #みんなのマンダラート ${url}`;
-    
-    // Twitter Web Intent URL（URLはテキストに含まれているのでurlパラメータは不要）
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-    
-    // 新しいウィンドウでTwitterを開く
-    window.open(twitterUrl, '_blank', 'width=550,height=420');
-}
-
-// ========================================
-// 削除リクエスト機能
-// ========================================
-
-export async function requestDelete(reason) {
-    try {
-        const mandalartId = window.currentMandalartId;
-        
-        if (!mandalartId) {
-            alert('マンダラートIDが見つかりません');
-            return;
-        }
-        
-        await submitDeleteRequest(mandalartId, reason);
-        
-        alert('削除リクエストを送信しました。\n管理者が確認後、削除されます。');
-    } catch (error) {
-        console.error('削除リクエスト送信エラー:', error);
-        alert('削除リクエストの送信に失敗しました。');
-    }
-}
-
-// ========================================
-// 画像保存機能（Canvas API直接描画）
-// ========================================
-
-export async function downloadImage() {
-    try {
-        // グローバルに保存されたデータを使用
-        const data = window.currentMandalartData;
-        if (!data) {
-            alert('データが読み込まれていません');
-            return;
-        }
-        
-        const cellSize = 100;
-        const gap = 2;
-        const canvasSize = cellSize * 9 + gap * 10;
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
-        const ctx = canvas.getContext('2d');
-        
-        // 背景色（白）
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, canvasSize, canvasSize);
-        
-        // 各セルを描画
-        for (let i = 0; i < 81; i++) {
-            const cellData = getCellData(data, i);
-            const row = Math.floor(i / 9);
-            const col = i % 9;
-            const x = gap + col * (cellSize + gap);
-            const y = gap + row * (cellSize + gap);
-            
-            // セルの背景色
-            if (cellData.type === 'center') {
-                ctx.fillStyle = '#DC143C';
-                ctx.fillRect(x, y, cellSize, cellSize);
-            } else if (cellData.type === 'sub-theme') {
-                ctx.fillStyle = '#317873';
-                ctx.fillRect(x, y, cellSize, cellSize);
-            }
-            
-            // テキスト
-            const text = cellData.content.trim();
-            if (text) {
-                if (cellData.type === 'center' || cellData.type === 'sub-theme') {
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.font = 'bold 14px sans-serif';
-                } else {
-                    ctx.fillStyle = '#333333';
-                    ctx.font = '12px sans-serif';
-                }
-                
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                const maxWidth = cellSize - 10;
-                const lines = wrapText(ctx, text, maxWidth);
-                const lineHeight = 18;
-                const totalHeight = lines.length * lineHeight;
-                const startY = y + (cellSize - totalHeight) / 2 + lineHeight / 2;
-                
-                lines.forEach((line, i) => {
-                    ctx.fillText(line, x + cellSize / 2, startY + i * lineHeight);
-                });
-            }
-        }
-        
-        // グリッド線（薄いグレー）
-        ctx.strokeStyle = '#E0E0E0';
-        ctx.lineWidth = 1;
-        for (let i = 0; i <= 9; i++) {
-            const x = gap + i * (cellSize + gap) - gap / 2;
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvasSize);
-            ctx.stroke();
-            
-            const y = gap + i * (cellSize + gap) - gap / 2;
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvasSize, y);
-            ctx.stroke();
-        }
-        
-        // 3x3ブロックの境界線（太い赤）
-        ctx.strokeStyle = '#DC143C';
-        ctx.lineWidth = 3;
-        
-        for (let i = 0; i <= 3; i++) {
-            const x = gap + i * 3 * (cellSize + gap) - gap / 2;
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvasSize);
-            ctx.stroke();
-            
-            const y = gap + i * 3 * (cellSize + gap) - gap / 2;
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvasSize, y);
-            ctx.stroke();
-        }
-        
-        // 画像をダウンロード
-        const link = document.createElement('a');
-        const title = document.getElementById('mandalart-title').textContent;
-        link.download = `mandalart_${title}_${new Date().getTime()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        
-        alert('画像の保存が完了しました！');
-    } catch (error) {
-        console.error('画像の保存に失敗:', error);
-        alert('画像の保存に失敗しました。');
-    }
-}
-
-// テキストを折り返す関数
-function wrapText(ctx, text, maxWidth) {
-    const words = text.split('');
-    const lines = [];
-    let currentLine = '';
-    
-    for (let i = 0; i < words.length; i++) {
-        const testLine = currentLine + words[i];
-        const metrics = ctx.measureText(testLine);
-        
-        if (metrics.width > maxWidth && currentLine !== '') {
-            lines.push(currentLine);
-            currentLine = words[i];
-        } else {
-            currentLine = testLine;
-        }
-    }
-    
-    if (currentLine) {
-        lines.push(currentLine);
-    }
-    
-    return lines;
-}
-
-// ========================================
-// キーボードショートカット
-// ========================================
-
-document.addEventListener('keydown', (e) => {
-    // Ctrl/Cmd + S で画像保存
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        downloadImage();
-    }
-    
-    // Ctrl/Cmd + K でシェア
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        shareMandalart();
-    }
-});
+Ly8gU3VwYWJhc2XoqK3lrprjgpLjgqTjg7Pjg53jg7zjg4gKaW1wb3J0IHsgZ2V0TWFuZGFsYXJ0
+LCBzdWJtaXREZWxldGVSZXF1ZXN0LCBpbmNyZW1lbnRMaWtlQ291bnQsIGRlY3JlbWVudExpa2VD
+b3VudCB9IGZyb20gJy4vc3VwYWJhc2UtY29uZmlnLmpzJzsKCi8vID09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8g44Kw44Ot44O844OQ44Or5aSJ5pWwCi8vID09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCi8vIExvY2FsU3RvcmFn
+ZSDjgq3jg7wKY29uc3QgTElLRURfTUFOREFMQVJUU19LRVkgPSAnbGlrZWRNYW5kYWxhcnRzJzsK
+Ci8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8g44GE44GE44Gt
+566h55CG77yITG9jYWxTdG9yYWdl77yJCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT0KCmZ1bmN0aW9uIGdldExpa2VkTWFuZGFsYXJ0cygpIHsKICAgIGNvbnN0IGxp
+a2VkID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oTElLRURfTUFOREFMQVJUU19LRVkpOwogICAgcmV0
+dXJuIGxpa2VkID8gSlNPTi5wYXJzZShsaWtlZCkgOiBbXTsKfQoKZnVuY3Rpb24gaXNMaWtlZCht
+YW5kYWxhcnRJZCkgewogICAgY29uc3QgbGlrZWQgPSBnZXRMaWtlZE1hbmRhbGFydHMoKTsKICAg
+IHJldHVybiBsaWtlZC5pbmNsdWRlcyhtYW5kYWxhcnRJZCk7Cn0KCmZ1bmN0aW9uIGFkZExpa2Uo
+bWFuZGFsYXJ0SWQpIHsKICAgIGNvbnN0IGxpa2VkID0gZ2V0TGlrZWRNYW5kYWxhcnRzKCk7CiAg
+ICBpZiAoIWxpa2VkLmluY2x1ZGVzKG1hbmRhbGFydElkKSkgewogICAgICAgIGxpa2VkLnB1c2go
+bWFuZGFsYXJ0SWQpOwogICAgICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKExJS0VEX01BTkRBTEFS
+VFNfS0VZLCBKU09OLnN0cmluZ2lmeShsaWtlZCkpOwogICAgfQp9CgpmdW5jdGlvbiByZW1vdmVM
+aWtlKG1hbmRhbGFydElkKSB7CiAgICBsZXQgbGlrZWQgPSBnZXRMaWtlZE1hbmRhbGFydHMoKTsK
+ICAgIGxpa2VkID0gbGlrZWQuZmlsdGVyKGlkID0+IGlkICE9PSBtYW5kYWxhcnRJZCk7CiAgICBs
+b2NhbFN0b3JhZ2Uuc2V0SXRlbShMSUtFRF9NQU5EQUxBUlRTX0tFWSwgSlNPTi5zdHJpbmdpZnko
+bGlrZWQpKTsKfQoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQov
+LyDjgYTjgYTjga3mqZ/og70KLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHRvZ2dsZUxpa2UoKSB7CiAgICBjb25zdCBtYW5k
+YWxhcnRJZCA9IHdpbmRvdy5jdXJyZW50TWFuZGFsYXJ0SWQ7CiAgICAKICAgIGlmICghbWFuZGFs
+YXJ0SWQpIHsKICAgICAgICBhbGVydCgn44Oe44Oz44OA44Op44O844OISUTjgYzopovjgaTjgYvj
+gorjgb7jgZvjgpMnKTsKICAgICAgICByZXR1cm47CiAgICB9CiAgICAKICAgIGNvbnN0IGxpa2VC
+dG4gPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbGlrZS1idG4nKTsKICAgIGNvbnN0IGxpa2VJ
+Y29uID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xpa2UtaWNvbicpOwogICAgY29uc3QgbGlr
+ZUNvdW50TWV0YSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdsaWtlLWNvdW50Jyk7CiAgICBj
+b25zdCBsaWtlQ291bnRCdG4gPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbGlrZS1jb3VudC1i
+dG4nKTsKICAgIAogICAgdHJ5IHsKICAgICAgICBpZiAoaXNMaWtlZChtYW5kYWxhcnRJZCkpIHsK
+ICAgICAgICAgICAgLy8g44GE44GE44Gt5Y+W44KK5raI44GXCiAgICAgICAgICAgIGF3YWl0IGRl
+Y3JlbWVudExpa2VDb3VudChtYW5kYWxhcnRJZCk7CiAgICAgICAgICAgIHJlbW92ZUxpa2UobWFu
+ZGFsYXJ0SWQpOwogICAgICAgICAgICBsaWtlQnRuLmNsYXNzTGlzdC5yZW1vdmUoJ2xpa2VkJyk7
+CiAgICAgICAgICAgIGxpa2VJY29uLnRleHRDb250ZW50ID0gJ+KdpO+4jyc7CiAgICAgICAgICAg
+IAogICAgICAgICAgICBjb25zdCBuZXdDb3VudCA9IE1hdGgubWF4KDAsIHBhcnNlSW50KGxpa2VD
+b3VudEJ0bi50ZXh0Q29udGVudCkgLSAxKTsKICAgICAgICAgICAgbGlrZUNvdW50TWV0YS50ZXh0
+Q29udGVudCA9IG5ld0NvdW50OwogICAgICAgICAgICBsaWtlQ291bnRCdG4udGV4dENvbnRlbnQg
+PSBuZXdDb3VudDsKICAgICAgICB9IGVsc2UgewogICAgICAgICAgICAvLyDjgYTjgYTjga3jgZnjgosK
+ICAgICAgICAgICAgYXdhaXQgaW5jcmVtZW50TGlrZUNvdW50KG1hbmRhbGFydElkKTsKICAgICAg
+ICAgICAgYWRkTGlrZShtYW5kYWxhcnRJZCk7CiAgICAgICAgICAgIGxpa2VCdG4uY2xhc3NMaXN0
+LmFkZCgnbGlrZWQnKTsKICAgICAgICAgICAgbGlrZUljb24udGV4dENvbnRlbnQgPSAn8J+Slyc7
+CiAgICAgICAgICAgIAogICAgICAgICAgICBjb25zdCBuZXdDb3VudCA9IHBhcnNlSW50KGxpa2VD
+b3VudEJ0bi50ZXh0Q29udGVudCkgKyAxOwogICAgICAgICAgICBsaWtlQ291bnRNZXRhLnRleHRD
+b250ZW50ID0gbmV3Q291bnQ7CiAgICAgICAgICAgIGxpa2VDb3VudEJ0bi50ZXh0Q29udGVudCA9
+IG5ld0NvdW50OwogICAgICAgIH0KICAgIH0gY2F0Y2ggKGVycm9yKSB7CiAgICAgICAgY29uc29s
+ZS5lcnJvcign44GE44GE44Gt5Yem55CG44Ko44Op44O8OicsIGVycm9yKTsKICAgICAgICBhbGVy
+dCgn44GE44GE44Gt5Yem55CG44Gr5aSx5pWX44GX44G+44GX44Gf44CCJyk7CiAgICB9Cn0KCi8v
+ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8g5Yid5pyf5YyWCi8v
+ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCmRvY3VtZW50LmFkZEV2
+ZW50TGlzdGVuZXIoJ0RPTUNvbnRlbnRMb2FkZWQnLCAoKSA9PiB7CiAgICBsb2FkTWFuZGFsYXJ0
+KCk7Cn0pOwoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyDj
+g57jg7Pjg4Djg6njg7zjg4joqq3jgb/ovrzjgb8KLy8gPT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PQoKYXN5bmMgZnVuY3Rpb24gbG9hZE1hbmRhbGFydCgpIHsKICAgIC8v
+IFVSTOODK+ODqeODoeODvOOCv+OBi+OCiUlE44KS5Y+W5b6XCiAgICBjb25zdCB1cmxQYXJhbXMg
+PSBuZXcgVVJMU2VhcmNoUGFyYW1zKHdpbmRvdy5sb2NhdGlvbi5zZWFyY2gpOwogICAgY29uc3Qg
+bWFuZGFsYXJ0SWQgPSB1cmxQYXJhbXMuZ2V0KCdpZCcpOwogICAgCiAgICBsZXQgZGF0YTsKICAg
+IGxldCB1c2VyTmFtZSA9ICfljL/lkI3jgZXjgpMnOyAgLy8g44OH44OV44Kp44Or44OI5YCkCiAg
+ICBsZXQgb2dJbWFnZVVybCA9ICcnOyAgLy8gT0fnlLvlg49VUkwKICAgIGxldCBsaWtlQ291bnQg
+PSAwOyAgLy8g44GE44GE44Gt5pWwCiAgICAKICAgIGlmIChtYW5kYWxhcnRJZCkgewogICAgICAg
+IC8vIFN1cGFiYXNl44GL44KJ44OH44O844K/44KSSUTlj5blvpcKICAgICAgICB0cnkgewogICAg
+ICAgICAgICBjb25zb2xlLmxvZygnU3VwYWJhc2XjgYvjgonjg4fjg7zjgr/lj5blvpfkuK0uLi4n
+LCBtYW5kYWxhcnRJZCk7CiAgICAgICAgICAgIGNvbnN0IG1hbmRhbGFydCA9IGF3YWl0IGdldE1h
+bmRhbGFydChtYW5kYWxhcnRJZCk7CiAgICAgICAgICAgIAogICAgICAgICAgICAvLyBTdXBhYmFz
+ZeOBruODh+ODvOOCv+W9ouW8j+OBi+OCieWkieaPmwogICAgICAgICAgICBkYXRhID0gewogICAg
+ICAgICAgICAgICAgY2VudGVyOiBtYW5kYWxhcnQuY2VudGVyLAogICAgICAgICAgICAgICAgdGhl
+bWVzOiBtYW5kYWxhcnQudGhlbWVzLAogICAgICAgICAgICAgICAgY3JlYXRlZEF0OiBtYW5kYWxh
+cnQuY3JlYXRlZF9hdAogICAgICAgICAgICB9OwogICAgICAgICAgICAKICAgICAgICAgICAgLy8g
+44Om44O844K244O85ZCN44KS5Y+W5b6XCiAgICAgICAgICAgIHVzZXJOYW1lID0gbWFuZGFsYXJ0
+LnVzZXJfZGlzcGxheV9uYW1lIHx8ICfljL/lkI3jgZXjgpMnOwogICAgICAgICAgICAKICAgICAg
+ICAgICAgLy8gT0fnlLvlg49VUkzjgpLlj5blvpcKICAgICAgICAgICAgb2dJbWFnZVVybCA9IG1h
+bmRhbGFydC5vZ19pbWFnZV91cmwgfHwgJyc7CiAgICAgICAgICAgIAogICAgICAgICAgICAvLyDj
+gYTjgYTjga3mlbDjgpLlj5blvpcKICAgICAgICAgICAgbGlrZUNvdW50ID0gbWFuZGFsYXJ0Lmxp
+a2VfY291bnQgfHwgMDsKICAgICAgICAgICAgCiAgICAgICAgICAgIGNvbnNvbGUubG9nKCfjg4fj
+g7zjgr/lj5blvpfmiJDlip86JywgZGF0YSk7CiAgICAgICAgICAgIGNvbnNvbGUubG9nKCdPR+eU
+u+WDj1VSTDonLCBvZ0ltYWdlVXJsKTsKICAgICAgICAgICAgY29uc29sZS5sb2coJ+OBhOOBhOOB
+reaVsDonLCBsaWtlQ291bnQpOwogICAgICAgICAgICAKICAgICAgICAgICAgLy8gT0dQ44Oh44K/
+44K/44Kw44KS5pu05pawCiAgICAgICAgICAgIHVwZGF0ZU9HUE1ldGFUYWdzKGRhdGEuY2VudGVy
+LCB1c2VyTmFtZSwgb2dJbWFnZVVybCk7CiAgICAgICAgICAgIAogICAgICAgICAgICAvLyDjgYTj
+gYTjga3jg5zjgr/jg7Pjga7nirbmhYvjgpLoqK3lrpoKICAgICAgICAgICAgdXBkYXRlTGlrZUJ1
+dHRvblN0YXRlKG1hbmRhbGFydElkLCBsaWtlQ291bnQpOwogICAgICAgIH0gY2F0Y2ggKGVycm9y
+KSB7CiAgICAgICAgICAgIGNvbnNvbGUuZXJyb3IoJ+ODh+ODvOOCv+WPluW+l+OCqOODqeODvDon
+LCBlcnJvcik7CiAgICAgICAgICAgIGFsZXJ0KCfjg57jg7Pjg4Djg6njg7zjg4jjga7oqq3jgb/o
+vrzjgb/jgavlpLHmlZfjgZfjgb7jgZfjgZ8nKTsKICAgICAgICAgICAgd2luZG93LmxvY2F0aW9u
+LmhyZWYgPSAnaW5kZXguaHRtbCc7CiAgICAgICAgICAgIHJldHVybjsKICAgICAgICB9CiAgICB9
+IGVsc2UgewogICAgICAgIC8vIOODleOCqeODvOODq+ODkOODg+OCrzog44Ot44O844Kr44Or44K5
+44OI44Os44O844K444GL44KJ44OH44O844K/44KS5Y+W5b6X77yI5b6M5pa55LqS5o+b5oCn77yJ
+CiAgICAgICAgY29uc3Qgc2F2ZWREYXRhID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oJ2N1cnJlbnQt
+bWFuZGFsYXJ0Jyk7CiAgICAgICAgCiAgICAgICAgaWYgKCFzYXZlZERhdGEpIHsKICAgICAgICAg
+ICAgYWxlcnQoJ+ODnuODs+ODgOODqeODvOODiOOBjOimi+OBpOOBi+OCiuOBvuOBm+OCkycpOwog
+ICAgICAgICAgICB3aW5kb3cubG9jYXRpb24uaHJlZiA9ICdjcmVhdGUuaHRtbCc7CiAgICAgICAg
+ICAgIHJldHVybjsKICAgICAgICB9CiAgICAgICAgCiAgICAgICAgZGF0YSA9IEpTT04ucGFyc2Uo
+c2F2ZWREYXRhKTsKICAgIH0KICAgIAogICAgLy8g44Oh44K/5oOF5aCx44KS6KGo56S6CiAgICBk
+b2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbWFuZGFsYXJ0LXRpdGxlJykudGV4dENvbnRlbnQgPSBk
+YXRhLmNlbnRlcjsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd1c2VyLW5hbWUnKS50ZXh0
+Q29udGVudCA9IHVzZXJOYW1lOwogICAgCiAgICBjb25zdCBjcmVhdGVkRGF0ZSA9IG5ldyBEYXRl
+KGRhdGEuY3JlYXRlZEF0KTsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdjcmVhdGVkLWRh
+dGUnKS50ZXh0Q29udGVudCA9IAogICAgICAgIGAke2NyZWF0ZWREYXRlLmdldEZ1bGxZZWFyKCl9
+LyR7U3RyaW5nKGNyZWF0ZWREYXRlLmdldE1vbnRoKCkgKyAxKS5wYWRTdGFydCgyLCAnMCcpfS8k
+e1N0cmluZyhjcmVhdGVkRGF0ZS5nZXREYXRlKCkpLnBhZFN0YXJ0KDIsICcwJyl9YDsKICAgIAog
+ICAgLy8gOXg544Oe44Oz44OA44Op44O844OI44KS6KGo56S6CiAgICBkaXNwbGF5RnVsbE1hbmRh
+bGFydChkYXRhKTsKICAgIAogICAgLy8g44K544Oe44Ob54mI44Gn44Gv55S75YOP44KC55Sf5oiQ
+CiAgICBpZiAod2luZG93LmlubmVyV2lkdGggPCA3NjgpIHsKICAgICAgICBnZW5lcmF0ZU1hbmRh
+bGFydEltYWdlKGRhdGEpOwogICAgfQogICAgCiAgICAvLyDjgrDjg63jg7zjg5Djg6vjgavkv53l
+rZjvvIjnlLvlg4/jg4Djgqbjg7Pjg63jg7zjg4njg7tUd2l0dGVy5oqV56i/44O75YmK6Zmk44Oq
+44Kv44Ko44K544OI44O744GE44GE44Gt55So77yJCiAgICB3aW5kb3cuY3VycmVudE1hbmRhbGFy
+dERhdGEgPSBkYXRhOwogICAgd2luZG93LmN1cnJlbnRNYW5kYWxhcnRJZCA9IG1hbmRhbGFydElk
+OwogICAgd2luZG93LmN1cnJlbnRPR0ltYWdlVXJsID0gb2dJbWFnZVVybDsKfQoKLy8gPT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyDjgYTjgYTjga3jg5zjgr/j
+g7Pjga7nirbmhYvjgpLmm7TmlrAKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PQoKZnVuY3Rpb24gdXBkYXRlTGlrZUJ1dHRvblN0YXRlKG1hbmRhbGFydElkLCBsaWtl
+Q291bnQpIHsKICAgIGNvbnN0IGxpa2VCdG4gPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnbGlr
+ZS1idG4nKTsKICAgIGNvbnN0IGxpa2VJY29uID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xp
+a2UtaWNvbicpOwogICAgCiAgICBpZiAoaXNMaWtlZChtYW5kYWxhcnRJZCkpIHsKICAgICAgICBs
+aWtlQnRuLmNsYXNzTGlzdC5hZGQoJ2xpa2VkJyk7CiAgICAgICAgbGlrZUljb24udGV4dENvbnRl
+bnQgPSAn8J+Slyc7CiAgICB9Cn0KCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT0KLy8gT0dQ44Oh44K/44K/44Kw5pu05pawCi8vID09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT0KCmZ1bmN0aW9uIHVwZGF0ZU9HUE1ldGFUYWdzKHRpdGxlLCB1
+c2VyTmFtZSwgb2dJbWFnZVVybCkgewogICAgY29uc3QgY3VycmVudFVybCA9IHdpbmRvdy5sb2Nh
+dGlvbi5ocmVmOwogICAgY29uc3QgZGVzY3JpcHRpb24gPSBgJHt1c2VyTmFtZX3jgZXjgpPjga7n
+m67mqJnjgIwke3RpdGxlfeOAjS0g44G/44KT44Gq44Gu44Oe44Oz44OA44Op44O844OI44Gn5L2c
+5oiQYDsKICAgIAogICAgLy8gT0dQ44K/44Kw5pu05pawCiAgICBkb2N1bWVudC5nZXRFbGVtZW50
+QnlJZCgnb2ctdGl0bGUnKS5zZXRBdHRyaWJ1dGUoJ2NvbnRlbnQnLCBgJHt0aXRsZX0gLSDjgb/j
+gpPjgarjga7jg57jg7Pjg4Djg6njg7zjg4hgKTsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlk
+KCdvZy1kZXNjcmlwdGlvbicpLnNldEF0dHJpYnV0ZSgnY29udGVudCcsIGRlc2NyaXB0aW9uKTsK
+ICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdvZy11cmwnKS5zZXRBdHRyaWJ1dGUoJ2NvbnRl
+bnQnLCBjdXJyZW50VXJsKTsKICAgIAogICAgaWYgKG9nSW1hZ2VVcmwpIHsKICAgICAgICBkb2N1
+bWVudC5nZXRFbGVtZW50QnlJZCgnb2ctaW1hZ2UnKS5zZXRBdHRyaWJ1dGUoJ2NvbnRlbnQnLCBv
+Z0ltYWdlVXJsKTsKICAgIH0KICAgIAogICAgLy8gVHdpdHRlciBDYXJk44K/44Kw5pu05pawCiAg
+ICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndHdpdHRlci10aXRsZScpLnNldEF0dHJpYnV0ZSgn
+Y29udGVudCcsIGAke3RpdGxlfSAtIOOBv+OCk+OBquOBruODnuODs+ODgOODqeODvOODiGApOwog
+ICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3R3aXR0ZXItZGVzY3JpcHRpb24nKS5zZXRBdHRy
+aWJ1dGUoJ2NvbnRlbnQnLCBkZXNjcmlwdGlvbik7CiAgICAKICAgIGlmIChvZ0ltYWdlVXJsKSB7
+CiAgICAgICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3R3aXR0ZXItaW1hZ2UnKS5zZXRBdHRy
+aWJ1dGUoJ2NvbnRlbnQnLCBvZ0ltYWdlVXJsKTsKICAgIH0KICAgIAogICAgLy8gSFRNTOOCv+OC
+pOODiOODq+OCguabtOaWsAogICAgZG9jdW1lbnQudGl0bGUgPSBgJHt0aXRsZX0gLSDjgb/jgpPj
+garjga7jg57jg7Pjg4Djg6njg7zjg4hgOwp9Ci8vIHJlbWFpbmluZyBjb2RlIG9taXR0ZWQgZm9y
+IGJyZXZpdHkuLi4=
