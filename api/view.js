@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     // マンダラートデータを取得
     const { data, error } = await supabase
       .from('mandalarts')
-      .select('center, og_image_url, user_display_name, created_at')
+      .select('center, og_image_url, user_display_name, created_at, like_count')
       .eq('id', id)
       .single();
     
@@ -120,6 +120,31 @@ export default async function handler(req, res) {
         .btn-danger:hover {
             background-color: #B01030;
         }
+
+        /* いいねボタン */
+        .btn-like {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #FFF;
+            border: 2px solid #DC143C;
+            color: #DC143C;
+            transition: all 0.2s;
+        }
+
+        .btn-like:hover {
+            background-color: #FFF5F5;
+            transform: scale(1.05);
+        }
+
+        .btn-like.liked {
+            background-color: #DC143C;
+            color: white;
+        }
+
+        .btn-like.liked:hover {
+            background-color: #B01030;
+        }
     </style>
 </head>
 <body>
@@ -151,6 +176,10 @@ export default async function handler(req, res) {
                         <span class="meta-icon">📅</span>
                         <span id="created-date">2025/01/01</span>
                     </span>
+                    <span class="meta-item">
+                        <span class="meta-icon">❤️</span>
+                        <span id="like-count">${data.like_count || 0}</span>
+                    </span>
                 </div>
             </div>
 
@@ -169,6 +198,9 @@ export default async function handler(req, res) {
 
             <!-- アクションボタン -->
             <div class="actions">
+                <button class="btn btn-like" id="like-btn">
+                    <span id="like-icon">❤️</span> いいね (<span id="like-count-btn">${data.like_count || 0}</span>)
+                </button>
                 <button class="btn btn-secondary" onclick="window.location.href='/prototype/create.html'">
                     ✏️ 新しく作成
                 </button>
@@ -213,18 +245,20 @@ export default async function handler(req, res) {
     </footer>
 
     <script type="module">
-        import { shareMandalart, downloadImage, shareToTwitter, requestDelete } from '/prototype/js/view.js';
+        import { shareMandalart, downloadImage, shareToTwitter, requestDelete, toggleLike } from '/prototype/js/view.js';
         
         // グローバル関数として公開
         window.shareMandalart = shareMandalart;
         window.downloadImage = downloadImage;
         window.shareToTwitter = shareToTwitter;
         window.requestDelete = requestDelete;
+        window.toggleLike = toggleLike;
         
         // ボタンにイベントリスナーを追加
         document.getElementById('share-btn').addEventListener('click', shareMandalart);
         document.getElementById('download-btn').addEventListener('click', downloadImage);
         document.getElementById('twitter-btn').addEventListener('click', shareToTwitter);
+        document.getElementById('like-btn').addEventListener('click', toggleLike);
         
         // 削除リクエストモーダル
         const modal = document.getElementById('delete-modal');
