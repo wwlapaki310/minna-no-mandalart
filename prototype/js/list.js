@@ -1,5 +1,5 @@
 // Supabase設定をインポート
-import { getPublicMandalarts, submitDeleteRequest } from './supabase-config.js';
+import { getPublicMandalarts, submitDeleteRequest, incrementLikeCount, decrementLikeCount } from './supabase-config.js';
 
 // ========================================
 // グローバル変数
@@ -10,6 +10,37 @@ const ITEMS_PER_PAGE = 20;
 let isLoading = false;
 let hasMore = true;
 let currentDeleteId = null; // 削除対象のマンダラートID
+
+// LocalStorage キー
+const LIKED_MANDALARTS_KEY = 'likedMandalarts';
+
+// ========================================
+// いいね管理（LocalStorage）
+// ========================================
+
+function getLikedMandalarts() {
+    const liked = localStorage.getItem(LIKED_MANDALARTS_KEY);
+    return liked ? JSON.parse(liked) : [];
+}
+
+function isLiked(mandalartId) {
+    const liked = getLikedMandalarts();
+    return liked.includes(mandalartId);
+}
+
+function addLike(mandalartId) {
+    const liked = getLikedMandalarts();
+    if (!liked.includes(mandalartId)) {
+        liked.push(mandalartId);
+        localStorage.setItem(LIKED_MANDALARTS_KEY, JSON.stringify(liked));
+    }
+}
+
+function removeLike(mandalartId) {
+    let liked = getLikedMandalarts();
+    liked = liked.filter(id => id !== mandalartId);
+    localStorage.setItem(LIKED_MANDALARTS_KEY, JSON.stringify(liked));
+}
 
 // ========================================
 // 初期化
@@ -83,6 +114,35 @@ async function requestDelete(mandalartId, reason) {
 }
 
 // ========================================
+// いいね機能
+// ========================================
+
+async function toggleLike(mandalartId, likeBtn, likeCount) {
+    try {
+        if (isLiked(mandalartId)) {
+            // いいね取り消し
+            await decrementLikeCount(mandalartId);
+            removeLike(mandalartId);
+            likeBtn.classList.remove('liked');
+            likeBtn.innerHTML = `❤️ <span class="card-like-count">${parseInt(likeCount.textContent) - 1}</span>`;
+        } else {
+            // いいねする
+            await incrementLikeCount(mandalartId);
+            addLike(mandalartId);
+            likeBtn.classList.add('liked');
+            likeBtn.innerHTML = `💗 <span class="card-like-count">${parseInt(likeCount.textContent) + 1}</span>`;
+        }
+    } catch (error) {
+        console.error('いいね処理エラー:', error);
+        alert('いいね処理に失敗しました。');
+    }
+}
+
+// グローバルに公開
+window.openDeleteModal = openDeleteModal;
+window.toggleLike = toggleLike;
+
+// ========================================
 // マンダラート一覧読み込み
 // ========================================
 
@@ -153,8 +213,8 @@ function createMandalartCard(mandalart) {
     const card = document.createElement('div');
     card.className = 'mandalart-card';
     card.onclick = (e) => {
-        // 削除ボタンをクリックした場合は遷移しない
-        if (!e.target.classList.contains('card-delete-btn')) {
+        // アクションボタンをクリックした場合は遷移しない
+        if (!e.target.closest('.card-actions')) {
             window.location.href = `/api/view?id=${mandalart.id}`;
         }
     };
@@ -169,6 +229,12 @@ function createMandalartCard(mandalart) {
     // ユーザー名（デフォルト：匿名さん）
     const userName = mandalart.user_display_name || '匿名さん';
     
+    // いいね状態
+    const liked = isLiked(mandalart.id);
+    const likeEmoji = liked ? '💗' : '❤️';
+    const likedClass = liked ? 'liked' : '';
+    const likeCount = mandalart.like_count || 0;
+    
     card.innerHTML = `
         <div class="card-image">
             ${thumbnail}
@@ -181,16 +247,18 @@ function createMandalartCard(mandalart) {
                 <span class="meta-item">👁️ ${mandalart.view_count || 0}</span>
             </div>
         </div>
-        <button class="card-delete-btn" onclick="event.stopPropagation(); window.openDeleteModal('${mandalart.id}')" title="削除リクエスト">
-            🗑️
-        </button>
+        <div class="card-actions">
+            <button class="card-like-btn ${likedClass}" onclick="event.stopPropagation(); window.toggleLike('${mandalart.id}', this, this.querySelector('.card-like-count'))" title="いいね">
+                ${likeEmoji} <span class="card-like-count">${likeCount}</span>
+            </button>
+            <button class="card-delete-btn" onclick="event.stopPropagation(); window.openDeleteModal('${mandalart.id}')" title="削除リクエスト">
+                🗑️
+            </button>
+        </div>
     `;
     
     return card;
 }
-
-// グローバルに公開
-window.openDeleteModal = openDeleteModal;
 
 // ========================================
 // サムネイル生成（3x3の中央ブロックのみ）
