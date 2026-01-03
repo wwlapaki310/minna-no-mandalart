@@ -56,6 +56,71 @@ export default async function handler(req, res) {
     
     <link rel="stylesheet" href="/prototype/css/style.css">
     <link rel="stylesheet" href="/prototype/css/view.css">
+    
+    <style>
+        /* 削除リクエストモーダル用のスタイル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #DC143C;
+        }
+        
+        .modal-body textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 0.75rem;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .modal-footer {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .btn-danger {
+            background-color: #DC143C;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #B01030;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -116,9 +181,30 @@ export default async function handler(req, res) {
                 <button class="btn btn-twitter" id="twitter-btn">
                     🐦 Xに投稿
                 </button>
+                <button class="btn btn-danger" id="delete-request-btn">
+                    🗑️ 削除リクエスト
+                </button>
             </div>
         </div>
     </main>
+
+    <!-- 削除リクエストモーダル -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>削除リクエスト</h3>
+            </div>
+            <div class="modal-body">
+                <p>このマンダラートの削除をリクエストします。管理者が確認後、削除されます。</p>
+                <label for="delete-reason">削除理由（必須）:</label>
+                <textarea id="delete-reason" placeholder="例: 不適切な内容が含まれている、個人情報が掲載されている、など"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-delete-btn">キャンセル</button>
+                <button class="btn btn-danger" id="submit-delete-btn">送信</button>
+            </div>
+        </div>
+    </div>
 
     <footer class="footer">
         <div class="container">
@@ -127,17 +213,53 @@ export default async function handler(req, res) {
     </footer>
 
     <script type="module">
-        import { shareMandalart, downloadImage, shareToTwitter } from '/prototype/js/view.js';
+        import { shareMandalart, downloadImage, shareToTwitter, requestDelete } from '/prototype/js/view.js';
         
         // グローバル関数として公開
         window.shareMandalart = shareMandalart;
         window.downloadImage = downloadImage;
         window.shareToTwitter = shareToTwitter;
+        window.requestDelete = requestDelete;
         
         // ボタンにイベントリスナーを追加
         document.getElementById('share-btn').addEventListener('click', shareMandalart);
         document.getElementById('download-btn').addEventListener('click', downloadImage);
         document.getElementById('twitter-btn').addEventListener('click', shareToTwitter);
+        
+        // 削除リクエストモーダル
+        const modal = document.getElementById('delete-modal');
+        const deleteReqBtn = document.getElementById('delete-request-btn');
+        const cancelBtn = document.getElementById('cancel-delete-btn');
+        const submitBtn = document.getElementById('submit-delete-btn');
+        
+        deleteReqBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            document.getElementById('delete-reason').value = '';
+        });
+        
+        submitBtn.addEventListener('click', async () => {
+            const reason = document.getElementById('delete-reason').value.trim();
+            if (!reason) {
+                alert('削除理由を入力してください');
+                return;
+            }
+            
+            await requestDelete(reason);
+            modal.classList.remove('active');
+            document.getElementById('delete-reason').value = '';
+        });
+        
+        // モーダル外クリックで閉じる
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                document.getElementById('delete-reason').value = '';
+            }
+        });
     </script>
 </body>
 </html>`;
